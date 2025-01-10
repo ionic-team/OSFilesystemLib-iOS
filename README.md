@@ -1,2 +1,2 @@
-# OSFilesystemsLib-iOS
-Filesystems native iOS library ⚡️
+# OSFilesystemLib-iOS
+Filesystem native iOS library ⚡️
