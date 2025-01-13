@@ -1,7 +1,12 @@
 import Foundation
 
 public protocol OSFLSTDirectoryManager {
-    func createDirectory(atPathURL: URL, includeIntermediateDirectories: Bool) throws
+    func createDirectory(atPath: String, includeIntermediateDirectories: Bool) throws
+    func removeDirectory(atPath: String, includeIntermediateDirectories: Bool) throws
+}
+
+enum OSFLSTDirectoryManagerError: Error {
+    case notEmpty
 }
 
 public struct OSFLSTManager {
@@ -13,7 +18,20 @@ public struct OSFLSTManager {
 }
 
 extension OSFLSTManager: OSFLSTDirectoryManager {
-    public func createDirectory(atPathURL pathURL: URL, includeIntermediateDirectories: Bool) throws {
+    public func createDirectory(atPath path: String, includeIntermediateDirectories: Bool) throws {
+        let pathURL = URL(fileURLWithPath: path)
         try fileManager.createDirectory(at: pathURL, withIntermediateDirectories: includeIntermediateDirectories)
+    }
+
+    public func removeDirectory(atPath path: String, includeIntermediateDirectories: Bool) throws {
+        let pathURL = URL(fileURLWithPath: path)
+        if !includeIntermediateDirectories {
+            let directoryContents = try fileManager.contentsOfDirectory(at: pathURL, includingPropertiesForKeys: nil)
+            if !directoryContents.isEmpty {
+                throw OSFLSTDirectoryManagerError.notEmpty
+            }
+        }
+        
+        try fileManager.removeItem(at: pathURL)
     }
 }
