@@ -19,12 +19,12 @@ public struct OSFLSTManager {
 
 extension OSFLSTManager: OSFLSTDirectoryManager {
     public func createDirectory(atPath path: String, includeIntermediateDirectories: Bool) throws {
-        let pathURL = URL(fileURLWithPath: path)
+        let pathURL = URLFactory.create(with: path)
         try fileManager.createDirectory(at: pathURL, withIntermediateDirectories: includeIntermediateDirectories)
     }
 
     public func removeDirectory(atPath path: String, includeIntermediateDirectories: Bool) throws {
-        let pathURL = URL(fileURLWithPath: path)
+        let pathURL = URLFactory.create(with: path)
         if !includeIntermediateDirectories {
             let directoryContents = try fileManager.contentsOfDirectory(at: pathURL, includingPropertiesForKeys: nil)
             if !directoryContents.isEmpty {
@@ -33,5 +33,19 @@ extension OSFLSTManager: OSFLSTDirectoryManager {
         }
         
         try fileManager.removeItem(at: pathURL)
+    }
+}
+
+private struct URLFactory {
+    static func create(with path: String) -> URL {
+        let url: URL
+
+        if #available(iOS 16.0, *) {
+            url = .init(filePath: path)
+        } else {
+            url = .init(fileURLWithPath: path)
+        }
+
+        return url
     }
 }
