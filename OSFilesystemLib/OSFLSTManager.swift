@@ -3,6 +3,7 @@ import Foundation
 public protocol OSFLSTDirectoryManager {
     func createDirectory(atPath: String, includeIntermediateDirectories: Bool) throws
     func removeDirectory(atPath: String, includeIntermediateDirectories: Bool) throws
+    func listDirectory(atPath: String) throws -> [URL]
 }
 
 enum OSFLSTDirectoryManagerError: Error {
@@ -26,13 +27,18 @@ extension OSFLSTManager: OSFLSTDirectoryManager {
     public func removeDirectory(atPath path: String, includeIntermediateDirectories: Bool) throws {
         let pathURL = URLFactory.create(with: path)
         if !includeIntermediateDirectories {
-            let directoryContents = try fileManager.contentsOfDirectory(at: pathURL, includingPropertiesForKeys: nil)
+            let directoryContents = try listDirectory(atPath: path)
             if !directoryContents.isEmpty {
                 throw OSFLSTDirectoryManagerError.notEmpty
             }
         }
         
         try fileManager.removeItem(at: pathURL)
+    }
+
+    public func listDirectory(atPath path: String) throws -> [URL] {
+        let pathURL = URLFactory.create(with: path)
+        return try fileManager.contentsOfDirectory(at: pathURL, includingPropertiesForKeys: nil)
     }
 }
 

@@ -30,6 +30,8 @@ extension MockFileManager {
     }
 
     override func contentsOfDirectory(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: FileManager.DirectoryEnumerationOptions = []) throws -> [URL] {
+        capturedPath = url.relativePath
+
         var urls = [URL]()
         if shouldDirectoryHaveContent {
             urls += [url]
