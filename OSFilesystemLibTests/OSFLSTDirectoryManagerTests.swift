@@ -2,7 +2,7 @@ import XCTest
 
 @testable import OSFilesystemLib
 
-final class OSFLSTManagerTests: XCTestCase {
+final class OSFLSTDirectoryManagerTests: XCTestCase {
     private var sut: OSFLSTManager!
 
     // MARK: - 'createDirectory' tests
@@ -136,7 +136,7 @@ final class OSFLSTManagerTests: XCTestCase {
     }
 }
 
-private extension OSFLSTManagerTests {
+private extension OSFLSTDirectoryManagerTests {
     @discardableResult func createFileManager(with error: MockFileManagerError? = nil, shouldDirectoryHaveContent: Bool = false) -> MockFileManager {
         let fileManager = MockFileManager(error: error, shouldDirectoryHaveContent: shouldDirectoryHaveContent)
         sut = OSFLSTManager(fileManager: fileManager)

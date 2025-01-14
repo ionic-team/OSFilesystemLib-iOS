@@ -1,15 +1,5 @@
 import Foundation
 
-public protocol OSFLSTDirectoryManager {
-    func createDirectory(atPath: String, includeIntermediateDirectories: Bool) throws
-    func removeDirectory(atPath: String, includeIntermediateDirectories: Bool) throws
-    func listDirectory(atPath: String) throws -> [URL]
-}
-
-enum OSFLSTDirectoryManagerError: Error {
-    case notEmpty
-}
-
 public struct OSFLSTManager {
     private let fileManager: FileManager
 
@@ -32,7 +22,7 @@ extension OSFLSTManager: OSFLSTDirectoryManager {
                 throw OSFLSTDirectoryManagerError.notEmpty
             }
         }
-        
+
         try fileManager.removeItem(at: pathURL)
     }
 
@@ -42,16 +32,34 @@ extension OSFLSTManager: OSFLSTDirectoryManager {
     }
 }
 
-private struct URLFactory {
-    static func create(with path: String) -> URL {
-        let url: URL
+extension OSFLSTManager: OSFLSTFileManager {
+    public func readFile(atPath path: String, withEncoding encoding: OSFLSTEncoding) throws -> String {
+        let fileURL = URLFactory.create(with: path)
 
-        if #available(iOS 16.0, *) {
-            url = .init(filePath: path)
-        } else {
-            url = .init(fileURLWithPath: path)
+        // Check if the URL requires security-scoped access
+        let requiresSecurityScope = fileURL.startAccessingSecurityScopedResource()
+
+        // Use defer to ensure we stop accessing the security-scoped resource
+        // only if we started accessing it
+        defer {
+            if requiresSecurityScope {
+                fileURL.stopAccessingSecurityScopedResource()
+            }
         }
 
-        return url
+        return switch encoding {
+        case .byteBuffer:
+            try readFileAsBase64EncodedString(from: fileURL)
+        case .string(let stringEncoding):
+            try readFileAsString(from: fileURL, using: stringEncoding.stringEncoding)
+        }
+    }
+
+    private func readFileAsBase64EncodedString(from fileURL: URL) throws -> String {
+        try Data(contentsOf: fileURL).base64EncodedString()
+    }
+
+    private func readFileAsString(from fileURL: URL, using stringEncoding: String.Encoding) throws -> String {
+        try String(contentsOf: fileURL, encoding: stringEncoding)
     }
 }

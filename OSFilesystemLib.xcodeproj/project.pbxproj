@@ -8,9 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		751328D52D3175170031BDD0 /* OSFLSTManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751328D42D3175170031BDD0 /* OSFLSTManager.swift */; };
-		751328DA2D318DBA0031BDD0 /* OSFLSTManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751328D92D318DBA0031BDD0 /* OSFLSTManagerTests.swift */; };
+		751328DA2D318DBA0031BDD0 /* OSFLSTDirectoryManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751328D92D318DBA0031BDD0 /* OSFLSTDirectoryManagerTests.swift */; };
 		751328DB2D318E770031BDD0 /* MockFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751328D82D3179430031BDD0 /* MockFileManager.swift */; };
 		7575CF6A2BFCEE6F008F3FD0 /* OSFilesystemLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7575CF612BFCEE6F008F3FD0 /* OSFilesystemLib.framework */; };
+		75FEB2B02D3546D7007C2686 /* OSFLSTManager+Assets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75FEB2AF2D3546D7007C2686 /* OSFLSTManager+Assets.swift */; };
+		75FEB2B22D35470C007C2686 /* URLFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75FEB2B12D35470C007C2686 /* URLFactory.swift */; };
+		75FEB2B42D35479B007C2686 /* OSFLSTFileManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75FEB2B32D35479B007C2686 /* OSFLSTFileManagerTests.swift */; };
+		75FEB2B72D355F21007C2686 /* file.txt in Resources */ = {isa = PBXBuildFile; fileRef = 75FEB2B62D355F21007C2686 /* file.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -26,9 +30,13 @@
 /* Begin PBXFileReference section */
 		751328D42D3175170031BDD0 /* OSFLSTManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSFLSTManager.swift; sourceTree = "<group>"; };
 		751328D82D3179430031BDD0 /* MockFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockFileManager.swift; sourceTree = "<group>"; };
-		751328D92D318DBA0031BDD0 /* OSFLSTManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSFLSTManagerTests.swift; sourceTree = "<group>"; };
+		751328D92D318DBA0031BDD0 /* OSFLSTDirectoryManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSFLSTDirectoryManagerTests.swift; sourceTree = "<group>"; };
 		7575CF612BFCEE6F008F3FD0 /* OSFilesystemLib.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = OSFilesystemLib.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7575CF692BFCEE6F008F3FD0 /* OSFilesystemLibTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OSFilesystemLibTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		75FEB2AF2D3546D7007C2686 /* OSFLSTManager+Assets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OSFLSTManager+Assets.swift"; sourceTree = "<group>"; };
+		75FEB2B12D35470C007C2686 /* URLFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLFactory.swift; sourceTree = "<group>"; };
+		75FEB2B32D35479B007C2686 /* OSFLSTFileManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSFLSTFileManagerTests.swift; sourceTree = "<group>"; };
+		75FEB2B62D355F21007C2686 /* file.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = file.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +80,8 @@
 			isa = PBXGroup;
 			children = (
 				751328D42D3175170031BDD0 /* OSFLSTManager.swift */,
+				75FEB2AF2D3546D7007C2686 /* OSFLSTManager+Assets.swift */,
+				75FEB2B12D35470C007C2686 /* URLFactory.swift */,
 			);
 			path = OSFilesystemLib;
 			sourceTree = "<group>";
@@ -80,7 +90,9 @@
 			isa = PBXGroup;
 			children = (
 				751328D82D3179430031BDD0 /* MockFileManager.swift */,
-				751328D92D318DBA0031BDD0 /* OSFLSTManagerTests.swift */,
+				751328D92D318DBA0031BDD0 /* OSFLSTDirectoryManagerTests.swift */,
+				75FEB2B32D35479B007C2686 /* OSFLSTFileManagerTests.swift */,
+				75FEB2B62D355F21007C2686 /* file.txt */,
 			);
 			path = OSFilesystemLibTests;
 			sourceTree = "<group>";
@@ -189,6 +201,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				75FEB2B72D355F21007C2686 /* file.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -220,7 +233,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				75FEB2B02D3546D7007C2686 /* OSFLSTManager+Assets.swift in Sources */,
 				751328D52D3175170031BDD0 /* OSFLSTManager.swift in Sources */,
+				75FEB2B22D35470C007C2686 /* URLFactory.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -228,8 +243,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				751328DA2D318DBA0031BDD0 /* OSFLSTManagerTests.swift in Sources */,
+				751328DA2D318DBA0031BDD0 /* OSFLSTDirectoryManagerTests.swift in Sources */,
 				751328DB2D318E770031BDD0 /* MockFileManager.swift in Sources */,
+				75FEB2B42D35479B007C2686 /* OSFLSTFileManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
