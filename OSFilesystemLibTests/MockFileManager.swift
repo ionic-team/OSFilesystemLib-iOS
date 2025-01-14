@@ -3,13 +3,16 @@ import Foundation
 class MockFileManager: FileManager {
     var error: MockFileManagerError?
     var shouldDirectoryHaveContent: Bool
+    var urlsWithinDirectory: [URL]
 
     private(set) var capturedPath: String?
     private(set) var capturedIntermediateDirectories: Bool = false
+    private(set) var capturedSearchPathDirectory: FileManager.SearchPathDirectory?
 
-    init(error: MockFileManagerError? = nil, shouldDirectoryHaveContent: Bool = false) {
+    init(error: MockFileManagerError? = nil, shouldDirectoryHaveContent: Bool = false, urlsWithinDirectory: [URL] = []) {
         self.error = error
         self.shouldDirectoryHaveContent = shouldDirectoryHaveContent
+        self.urlsWithinDirectory = urlsWithinDirectory
     }
 }
 
@@ -50,5 +53,11 @@ extension MockFileManager {
         if let error, error == .deleteDirectoryError {
             throw error
         }
+    }
+
+    override func urls(for directory: FileManager.SearchPathDirectory, in domainMask: FileManager.SearchPathDomainMask) -> [URL] {
+        capturedSearchPathDirectory = directory
+
+        return urlsWithinDirectory
     }
 }

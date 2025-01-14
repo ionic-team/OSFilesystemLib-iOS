@@ -10,12 +10,12 @@ public struct OSFLSTManager {
 
 extension OSFLSTManager: OSFLSTDirectoryManager {
     public func createDirectory(atPath path: String, includeIntermediateDirectories: Bool) throws {
-        let pathURL = URLFactory.create(with: path)
+        let pathURL = URL.create(with: path)
         try fileManager.createDirectory(at: pathURL, withIntermediateDirectories: includeIntermediateDirectories)
     }
 
     public func removeDirectory(atPath path: String, includeIntermediateDirectories: Bool) throws {
-        let pathURL = URLFactory.create(with: path)
+        let pathURL = URL.create(with: path)
         if !includeIntermediateDirectories {
             let directoryContents = try listDirectory(atPath: path)
             if !directoryContents.isEmpty {
@@ -27,14 +27,14 @@ extension OSFLSTManager: OSFLSTDirectoryManager {
     }
 
     public func listDirectory(atPath path: String) throws -> [URL] {
-        let pathURL = URLFactory.create(with: path)
+        let pathURL = URL.create(with: path)
         return try fileManager.contentsOfDirectory(at: pathURL, includingPropertiesForKeys: nil)
     }
 }
 
 extension OSFLSTManager: OSFLSTFileManager {
     public func readFile(atPath path: String, withEncoding encoding: OSFLSTEncoding) throws -> String {
-        let fileURL = URLFactory.create(with: path)
+        let fileURL = URL.create(with: path)
 
         // Check if the URL requires security-scoped access
         let requiresSecurityScope = fileURL.startAccessingSecurityScopedResource()
@@ -55,11 +55,35 @@ extension OSFLSTManager: OSFLSTFileManager {
         }
     }
 
+    public func getFileURL(atPath path: String, withSearchPath searchPath: OSFLSTSearchPath) throws -> URL {
+        return switch searchPath {
+        case .directory(let directorySearchPath):
+            try resolveDirectoryURL(for: directorySearchPath.fileManagerSearchPathDirectory, with: path)
+        case .raw:
+            try resolveRawURL(from: path)
+        }
+    }
+
     private func readFileAsBase64EncodedString(from fileURL: URL) throws -> String {
         try Data(contentsOf: fileURL).base64EncodedString()
     }
 
     private func readFileAsString(from fileURL: URL, using stringEncoding: String.Encoding) throws -> String {
         try String(contentsOf: fileURL, encoding: stringEncoding)
+    }
+
+    private func resolveDirectoryURL(for searchPath: FileManager.SearchPathDirectory, with path: String) throws -> URL {
+        guard let directoryURL = fileManager.urls(for: searchPath, in: .userDomainMask).first else {
+            throw OSFLSTFileManagerError.directoryNotFound
+        }
+
+        return path.isEmpty ? directoryURL : directoryURL.appendingPathComponent(path)
+    }
+
+    private func resolveRawURL(from path: String) throws -> URL {
+        guard let rawURL = URL(string: path) else {
+            throw OSFLSTFileManagerError.cantCreateURL
+        }
+        return rawURL
     }
 }
