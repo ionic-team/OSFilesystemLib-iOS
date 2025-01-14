@@ -13,11 +13,13 @@ enum OSFLSTDirectoryManagerError: Error {
 public protocol OSFLSTFileManager {
     func readFile(atPath: String, withEncoding: OSFLSTEncoding) throws -> String
     func getFileURL(atPath: String, withSearchPath: OSFLSTSearchPath) throws -> URL
+    func deleteFile(atPath: String) throws
 }
 
 enum OSFLSTFileManagerError: Error {
     case cantCreateURL
     case directoryNotFound
+    case fileNotFound
 }
 
 public enum OSFLSTEncoding {

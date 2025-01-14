@@ -112,6 +112,44 @@ final class OSFLSTFileManagerTests: XCTestCase {
             XCTAssertEqual($0 as? OSFLSTFileManagerError, .cantCreateURL)
         }
     }
+
+    // MARK: - 'deleteFile' tests
+    func test_deleteFile_shouldBeSuccessful() throws {
+        // Given
+        let fileManager = createFileManager()
+        let filePath = "/test/directory"
+
+        // When
+        try sut.deleteFile(atPath: filePath)
+
+        // Then
+        XCTAssertEqual(fileManager.capturedPath, filePath)
+    }
+
+    func test_deleteFile_thatDoesntExist_shouldReturnError() {
+        // Given
+        createFileManager(fileExists: false)
+        let filePath = "/test/directory"
+
+        // When
+        XCTAssertThrowsError(try sut.deleteFile(atPath: filePath)) {
+            // Then
+            XCTAssertEqual($0 as? OSFLSTFileManagerError, .fileNotFound)
+        }
+    }
+
+    func test_deleteFile_thatFailsWhileDeleting_shouldReturnError() {
+        // Given
+        let error = MockFileManagerError.deleteFileError
+        createFileManager(error: error)
+        let filePath = "/test/directory"
+
+        // When
+        XCTAssertThrowsError(try sut.deleteFile(atPath: filePath)) {
+            // Then
+            XCTAssertEqual($0 as? MockFileManagerError, error)
+        }
+    }
 }
 
 private extension OSFLSTFileManagerTests {
@@ -121,8 +159,8 @@ private extension OSFLSTFileManagerTests {
         static let fileContent = "Hello, world!"
     }
 
-    @discardableResult func createFileManager(urlsWithinDirectory: [URL] = []) -> MockFileManager {
-        let fileManager = MockFileManager(urlsWithinDirectory: urlsWithinDirectory)
+    @discardableResult func createFileManager(error: MockFileManagerError? = nil, urlsWithinDirectory: [URL] = [], fileExists: Bool = true) -> MockFileManager {
+        let fileManager = MockFileManager(error: error, urlsWithinDirectory: urlsWithinDirectory, fileExists: fileExists)
         sut = OSFLSTManager(fileManager: fileManager)
 
         return fileManager

@@ -64,6 +64,14 @@ extension OSFLSTManager: OSFLSTFileManager {
         }
     }
 
+    public func deleteFile(atPath path: String) throws {
+        guard fileManager.fileExists(atPath: path) else {
+            throw OSFLSTFileManagerError.fileNotFound
+        }
+
+        try fileManager.removeItem(atPath: path)
+    }
+
     private func readFileAsBase64EncodedString(from fileURL: URL) throws -> String {
         try Data(contentsOf: fileURL).base64EncodedString()
     }
