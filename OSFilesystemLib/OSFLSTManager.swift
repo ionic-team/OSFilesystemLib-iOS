@@ -118,6 +118,18 @@ extension OSFLSTManager: OSFLSTFileManager {
         return .create(from: attributesDictionary)
     }
 
+    public func renameItem(fromPath origin: String, toPath destination: String) throws {
+        try copy(fromPath: origin, toPath: destination) {
+            try fileManager.moveItem(atPath: origin, toPath: destination)
+        }
+    }
+
+    public func copyItem(fromPath origin: String, toPath destination: String) throws {
+        try copy(fromPath: origin, toPath: destination) {
+            try fileManager.copyItem(atPath: origin, toPath: destination)
+        }
+    }
+
     private func readFileAsBase64EncodedString(from fileURL: URL) throws -> String {
         try Data(contentsOf: fileURL).base64EncodedString()
     }
@@ -139,5 +151,20 @@ extension OSFLSTManager: OSFLSTFileManager {
             throw OSFLSTFileManagerError.cantCreateURL
         }
         return rawURL
+    }
+
+    private func copy(fromPath origin: String, toPath destination: String, performOperation: () throws -> Void) throws {
+        guard origin != destination else {
+            return
+        }
+
+        var isDirectory: ObjCBool = false
+        if fileManager.fileExists(atPath: destination, isDirectory: &isDirectory) {
+            if !isDirectory.boolValue {
+                try deleteFile(atPath: destination)
+            }
+        }
+
+        try performOperation()
     }
 }

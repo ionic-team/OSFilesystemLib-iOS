@@ -6,17 +6,21 @@ class MockFileManager: FileManager {
     var urlsWithinDirectory: [URL]
     var fileExists: Bool
     var fileAttributes: [FileAttributeKey: Any]
+    var shouldBeDirectory: ObjCBool
 
     private(set) var capturedPath: String?
+    private(set) var capturedOriginPath: String?
+    private(set) var capturedDestinationPath: String?
     private(set) var capturedIntermediateDirectories: Bool = false
     private(set) var capturedSearchPathDirectory: FileManager.SearchPathDirectory?
 
-    init(error: MockFileManagerError? = nil, shouldDirectoryHaveContent: Bool = false, urlsWithinDirectory: [URL] = [], fileExists: Bool = true, fileAttributes: [FileAttributeKey: Any] = [:]) {
+    init(error: MockFileManagerError? = nil, shouldDirectoryHaveContent: Bool = false, urlsWithinDirectory: [URL] = [], fileExists: Bool = true, fileAttributes: [FileAttributeKey: Any] = [:], shouldBeDirectory: ObjCBool = true) {
         self.error = error
         self.shouldDirectoryHaveContent = shouldDirectoryHaveContent
         self.urlsWithinDirectory = urlsWithinDirectory
         self.fileExists = fileExists
         self.fileAttributes = fileAttributes
+        self.shouldBeDirectory = shouldBeDirectory
     }
 }
 
@@ -71,6 +75,12 @@ extension MockFileManager {
         fileExists
     }
 
+    override func fileExists(atPath path: String, isDirectory: UnsafeMutablePointer<ObjCBool>?) -> Bool {
+        isDirectory?.pointee = shouldBeDirectory
+
+        return fileExists
+    }
+
     override func removeItem(atPath path: String) throws {
         capturedPath = path
 
@@ -87,5 +97,15 @@ extension MockFileManager {
         }
 
         return fileAttributes
+    }
+
+    override func moveItem(atPath srcPath: String, toPath dstPath: String) throws {
+        capturedOriginPath = srcPath
+        capturedDestinationPath = dstPath
+    }
+
+    override func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
+        capturedOriginPath = srcPath
+        capturedDestinationPath = dstPath
     }
 }

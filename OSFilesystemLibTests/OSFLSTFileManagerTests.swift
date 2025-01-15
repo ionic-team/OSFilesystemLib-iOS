@@ -4,8 +4,10 @@ import XCTest
 
 final class OSFLSTFileManagerTests: XCTestCase {
     private var sut: OSFLSTManager!
+}
 
-    // MARK: - 'readFile` tests
+// MARK: - 'readFile` tests
+extension OSFLSTFileManagerTests {
     func test_readFile_withStringEncoding_returnsContentSuccessfully() throws {
         // Given
         createFileManager()
@@ -31,8 +33,10 @@ final class OSFLSTFileManagerTests: XCTestCase {
         // Then
         XCTAssertEqual(fileContent, Configuration.fileContent)
     }
+}
 
-    // MARK: - 'getFileURL' tests
+// MARK: - 'getFileURL' tests
+extension OSFLSTFileManagerTests {
     func test_getFileURL_fromDirectorySearchPath_containingSingleFile_returnsFileSuccessfully() throws {
         // Given
         let fileURL: URL = try XCTUnwrap(.init(string: "/file/directory"))
@@ -115,8 +119,10 @@ final class OSFLSTFileManagerTests: XCTestCase {
             XCTAssertEqual($0 as? OSFLSTFileManagerError, .cantCreateURL)
         }
     }
+}
 
-    // MARK: - 'deleteFile' tests
+// MARK: - 'deleteFile' tests
+extension OSFLSTFileManagerTests {
     func test_deleteFile_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager()
@@ -153,8 +159,10 @@ final class OSFLSTFileManagerTests: XCTestCase {
             XCTAssertEqual($0 as? MockFileManagerError, error)
         }
     }
+}
 
-    // MARK: - 'saveFile' tests
+// MARK: - 'saveFile' tests
+extension OSFLSTFileManagerTests {
     func test_saveFile_withStringEncoding_savesFileSuccessfullyAndReturnsItsURL() throws {
         // Given
         let fileManager = createFileManager()
@@ -266,8 +274,10 @@ final class OSFLSTFileManagerTests: XCTestCase {
             XCTAssertEqual($0 as? OSFLSTFileManagerError, .missingParentFolder)
         }
     }
+}
 
-    // MARK: - 'appendData' tests
+// MARK: - 'appendData' tests
+extension OSFLSTFileManagerTests {
     func test_appendData_withStringEncoding_savesFileSuccessfully() throws {
         // Given
         createFileManager()
@@ -373,8 +383,10 @@ final class OSFLSTFileManagerTests: XCTestCase {
             XCTAssertEqual($0 as? OSFLSTFileManagerError, .cantDecodeData)
         }
     }
+}
 
-    // MARK: - 'getItemAttributes' tests
+// MARK: - 'getItemAttributes' tests
+extension OSFLSTFileManagerTests {
     func test_getItemAttributes_forFile_returnsFileAttributeModelSuccessfully() throws {
         // Given
         let currentDate = Date()
@@ -402,10 +414,9 @@ final class OSFLSTFileManagerTests: XCTestCase {
         XCTAssertEqual(fileAttributesModel.type, .file)
     }
 
-    // MARK: - 'getItemAttributes' tests
     func test_getItemAttributes_omittingValues_returnsFileAttributeModelSuccessfully() throws {
         // Given
-       let fileAttributes = Configuration.fileAttributes(
+        let fileAttributes = Configuration.fileAttributes(
             isDirectoryType: false
         )
         let fileManager = createFileManager(fileAttributes: fileAttributes)
@@ -470,6 +481,126 @@ final class OSFLSTFileManagerTests: XCTestCase {
     }
 }
 
+// MARK: - 'renameItem' tests
+extension OSFLSTFileManagerTests {
+    func test_renameItem_shouldBeSuccessful() throws {
+        // Given
+        let fileManager = createFileManager(fileExists: false)
+        let originPath = "/test/origin"
+        let destinationPath = "/test/destination"
+
+        // When
+        try sut.renameItem(fromPath: originPath, toPath: destinationPath)
+
+        // Then
+        XCTAssertEqual(fileManager.capturedOriginPath, originPath)
+        XCTAssertEqual(fileManager.capturedDestinationPath, destinationPath)
+    }
+
+    func test_renameItem_sameOriginAndDestination_shouldDoNothing() throws {
+        // Given
+        let fileManager = createFileManager(fileExists: false)
+        let originPath = "/test/origin"
+        let destinationPath = "/test/origin"
+
+        // When
+        try sut.renameItem(fromPath: originPath, toPath: destinationPath)
+
+        // Then
+        XCTAssertNil(fileManager.capturedOriginPath)
+        XCTAssertNil(fileManager.capturedDestinationPath)
+    }
+
+    func test_renameDirectory_alreadyExisting_shouldBeSuccessful() throws {
+        // Given
+        let fileManager = createFileManager()
+        let originPath = "/test/origin"
+        let destinationPath = "/test/destination"
+
+        // When
+        try sut.renameItem(fromPath: originPath, toPath: destinationPath)
+
+        // Then
+        XCTAssertEqual(fileManager.capturedOriginPath, originPath)
+        XCTAssertEqual(fileManager.capturedDestinationPath, destinationPath)
+    }
+
+    func test_renameFile_alreadyExisting_shouldBeSuccessful() throws {
+        // Given
+        let fileManager = createFileManager(shouldBeDirectory: false)
+        let originPath = "/test/origin"
+        let destinationPath = "/test/destination"
+
+        // When
+        try sut.renameItem(fromPath: originPath, toPath: destinationPath)
+
+        // Then
+        XCTAssertEqual(fileManager.capturedPath, destinationPath)
+        XCTAssertEqual(fileManager.capturedOriginPath, originPath)
+        XCTAssertEqual(fileManager.capturedDestinationPath, destinationPath)
+    }
+}
+
+// MARK: - 'copyItem' tests
+extension OSFLSTFileManagerTests {
+    func test_copyItem_shouldBeSuccessful() throws {
+        // Given
+        let fileManager = createFileManager(fileExists: false)
+        let originPath = "/test/origin"
+        let destinationPath = "/test/destination"
+
+        // When
+        try sut.copyItem(fromPath: originPath, toPath: destinationPath)
+
+        // Then
+        XCTAssertEqual(fileManager.capturedOriginPath, originPath)
+        XCTAssertEqual(fileManager.capturedDestinationPath, destinationPath)
+    }
+
+    func test_copyItem_sameOriginAndDestination_shouldDoNothing() throws {
+        // Given
+        let fileManager = createFileManager(fileExists: false)
+        let originPath = "/test/origin"
+        let destinationPath = "/test/origin"
+
+        // When
+        try sut.copyItem(fromPath: originPath, toPath: destinationPath)
+
+        // Then
+        XCTAssertNil(fileManager.capturedOriginPath)
+        XCTAssertNil(fileManager.capturedDestinationPath)
+    }
+
+    func test_copyDirectory_alreadyExisting_shouldBeSuccessful() throws {
+        // Given
+        let fileManager = createFileManager()
+        let originPath = "/test/origin"
+        let destinationPath = "/test/destination"
+
+        // When
+        try sut.copyItem(fromPath: originPath, toPath: destinationPath)
+
+        // Then
+        XCTAssertEqual(fileManager.capturedOriginPath, originPath)
+        XCTAssertEqual(fileManager.capturedDestinationPath, destinationPath)
+    }
+
+    func test_copyFile_alreadyExisting_shouldBeSuccessful() throws {
+        // Given
+        let fileManager = createFileManager(shouldBeDirectory: false)
+        let originPath = "/test/origin"
+        let destinationPath = "/test/destination"
+
+        // When
+        try sut.copyItem(fromPath: originPath, toPath: destinationPath)
+
+        // Then
+        XCTAssertEqual(fileManager.capturedPath, destinationPath)
+        XCTAssertEqual(fileManager.capturedOriginPath, originPath)
+        XCTAssertEqual(fileManager.capturedDestinationPath, destinationPath)
+    }
+}
+
 private extension OSFLSTFileManagerTests {
     struct Configuration {
         static let fileName = "file"
@@ -504,9 +635,13 @@ private extension OSFLSTFileManagerTests {
         }
     }
 
-    @discardableResult func createFileManager(error: MockFileManagerError? = nil, urlsWithinDirectory: [URL] = [], fileExists: Bool = true, fileAttributes: [FileAttributeKey: Any] = [:]) -> MockFileManager {
+    @discardableResult func createFileManager(error: MockFileManagerError? = nil, urlsWithinDirectory: [URL] = [], fileExists: Bool = true, fileAttributes: [FileAttributeKey: Any] = [:], shouldBeDirectory: ObjCBool = true) -> MockFileManager {
         let fileManager = MockFileManager(
-            error: error, urlsWithinDirectory: urlsWithinDirectory, fileExists: fileExists, fileAttributes: fileAttributes
+            error: error,
+            urlsWithinDirectory: urlsWithinDirectory,
+            fileExists: fileExists,
+            fileAttributes: fileAttributes,
+            shouldBeDirectory: shouldBeDirectory
         )
         sut = OSFLSTManager(fileManager: fileManager)
 
