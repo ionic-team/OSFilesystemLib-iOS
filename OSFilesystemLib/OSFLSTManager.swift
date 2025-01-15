@@ -72,7 +72,7 @@ extension OSFLSTManager: OSFLSTFileManager {
         try fileManager.removeItem(atPath: path)
     }
 
-    public func saveFile(atPath path: String, withEncodingAndData encodingMapper: OSFLSTEncodingValueMapper, includeIntermediateDirectories: Bool) throws -> URL {
+    @discardableResult public func saveFile(atPath path: String, withEncodingAndData encodingMapper: OSFLSTEncodingValueMapper, includeIntermediateDirectories: Bool) throws -> URL {
         let fileURL = URL.create(with: path)
         let fileDirectoryURL = fileURL.deletingLastPathComponent()
 
@@ -92,6 +92,25 @@ extension OSFLSTManager: OSFLSTFileManager {
         }
 
         return fileURL
+    }
+
+    public func appendData(_ encodingMapper: OSFLSTEncodingValueMapper, atPath path: String, includeIntermediateDirectories: Bool) throws {
+        guard fileManager.fileExists(atPath: path) else {
+            try saveFile(atPath: path, withEncodingAndData: encodingMapper, includeIntermediateDirectories: includeIntermediateDirectories)
+            return
+        }
+
+        guard let dataToAppend = switch encodingMapper {
+        case .byteBuffer(let value): value
+        case .string(let encoding, let value): value.data(using: encoding.stringEncoding)
+        } else {
+            throw OSFLSTFileManagerError.cantDecodeData
+        }
+
+        let fileHandle = FileHandle(forWritingAtPath: path)
+        try fileHandle?.seekToEnd()
+        try fileHandle?.write(contentsOf: dataToAppend)
+        try fileHandle?.close()
     }
 
     private func readFileAsBase64EncodedString(from fileURL: URL) throws -> String {

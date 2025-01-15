@@ -15,10 +15,12 @@ public protocol OSFLSTFileManager {
     func getFileURL(atPath: String, withSearchPath: OSFLSTSearchPath) throws -> URL
     func deleteFile(atPath: String) throws
     func saveFile(atPath: String, withEncodingAndData: OSFLSTEncodingValueMapper, includeIntermediateDirectories: Bool) throws -> URL
+    func appendData(_ data: OSFLSTEncodingValueMapper, atPath: String, includeIntermediateDirectories: Bool) throws
 }
 
 enum OSFLSTFileManagerError: Error {
     case cantCreateURL
+    case cantDecodeData
     case directoryNotFound
     case fileNotFound
     case missingParentFolder

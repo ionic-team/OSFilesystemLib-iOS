@@ -74,7 +74,6 @@ final class OSFLSTFileManagerTests: XCTestCase {
         XCTAssertThrowsError(try sut.getFileURL(atPath: filePath, withSearchPath: .directory(searchPath: searchPathDirectory))) {
             // Then
             XCTAssertEqual($0 as? OSFLSTFileManagerError, .directoryNotFound)
-
         }
     }
 
@@ -246,28 +245,6 @@ final class OSFLSTFileManagerTests: XCTestCase {
         try sut.deleteFile(atPath: fileURL.absoluteString)  // keep things clean by deleting created file
     }
 
-    func test_saveFile_parentFolderMissing_failsCreatingIt_returnsError() throws {
-        // Given
-        createFileManager(error: .createDirectoryError, fileExists: false)
-        let parentFolderURL = try XCTUnwrap(fetchConfigurationFile())
-            .deletingLastPathComponent()
-        let fileURL = parentFolderURL
-            .appending(path: "\(Configuration.newFileName).\(Configuration.fileExtension)")
-        let stringEncoding = OSFLSTStringEncoding.ascii
-        let contentToSave = Configuration.stringEncodedFileContent
-        let shouldIncludeIntermediateDirectories = true
-
-        // When
-        XCTAssertThrowsError(try sut.saveFile(
-            atPath: fileURL.path(),
-            withEncodingAndData: .string(encoding: stringEncoding, value: contentToSave),
-            includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
-        ) {
-            // Then
-            XCTAssertEqual($0 as? MockFileManagerError, .createDirectoryError)
-        }
-    }
-
     func test_saveFile_parentFolderMissing_shouldntCreateIt_returnsError() throws {
         // Given
         createFileManager(fileExists: false)
@@ -289,6 +266,113 @@ final class OSFLSTFileManagerTests: XCTestCase {
             XCTAssertEqual($0 as? OSFLSTFileManagerError, .missingParentFolder)
         }
     }
+
+    // MARK: - 'appendData' tests
+    func test_appendData_withStringEncoding_savesFileSuccessfully() throws {
+        // Given
+        createFileManager()
+        let fileURL = try XCTUnwrap(fetchConfigurationFile())
+        let stringEncoding = OSFLSTStringEncoding.ascii
+        let contentToAdd = Configuration.fileExtendedContent
+
+        // When
+        try sut.appendData(
+            .string(encoding: stringEncoding, value: contentToAdd),
+            atPath: fileURL.path(),
+            includeIntermediateDirectories: false
+        )
+
+        // Then
+        let savedFileContent = try fetchContent(
+            forFile: (Configuration.fileName, Configuration.fileExtension), withEncoding: .string(encoding: stringEncoding)
+        )
+
+        XCTAssertEqual(savedFileContent, Configuration.fileContent + contentToAdd)
+
+        try sut.saveFile(    // keep things clean by resetting file
+            atPath: fileURL.path(),
+            withEncodingAndData: .string(encoding: stringEncoding, value: Configuration.fileContent),
+            includeIntermediateDirectories: false
+        )
+    }
+
+    func test_appendData_withByteBufferEncoding_savesFileSuccessfully() throws {
+        // Given
+        createFileManager()
+        let fileURL = try XCTUnwrap(fetchConfigurationFile())
+        let contentToAdd = Configuration.byteBufferEncodedFileContent
+        let contentToAddData = try XCTUnwrap(contentToAdd.data(using: .utf8))
+
+        // When
+        try sut.appendData(
+            .byteBuffer(value: contentToAddData),
+            atPath: fileURL.path(),
+            includeIntermediateDirectories: false
+        )
+
+        // Then
+        let savedFileContent = try fetchContent(
+            forFile: (Configuration.fileName, Configuration.fileExtension), withEncoding: .byteBuffer
+        )
+
+        XCTAssertEqual(savedFileContent, Configuration.fileContent + contentToAdd)
+
+        try sut.saveFile(    // keep things clean by resetting file
+            atPath: fileURL.path(),
+            withEncodingAndData: .string(encoding: .ascii, value: Configuration.fileContent),
+            includeIntermediateDirectories: false
+        )
+    }
+
+    func test_appendData_fileDoesntExist_createsNewFileSuccessfully() throws {
+        // Given
+        let fileManager = createFileManager(fileExists: false)
+        let parentFolderURL = try XCTUnwrap(fetchConfigurationFile())
+            .deletingLastPathComponent()
+        let fileURL = parentFolderURL
+            .appending(path: "\(Configuration.newFileName).\(Configuration.fileExtension)")
+        let stringEncoding = OSFLSTStringEncoding.ascii
+        let contentToAdd = Configuration.stringEncodedFileContent
+        let shouldIncludeIntermediateDirectories = true
+
+        // When
+        try sut.appendData(
+            .string(encoding: stringEncoding, value: contentToAdd),
+            atPath: fileURL.path(),
+            includeIntermediateDirectories: shouldIncludeIntermediateDirectories
+        )
+
+        XCTAssertEqual(fileManager.capturedPath, parentFolderURL.relativePath)
+        XCTAssertEqual(fileManager.capturedIntermediateDirectories, shouldIncludeIntermediateDirectories)
+
+        // Then
+        let savedFileContent = try fetchContent(
+            forFile: (Configuration.newFileName, Configuration.fileExtension), withEncoding: .string(encoding: stringEncoding)
+        )
+
+        XCTAssertEqual(savedFileContent, contentToAdd)
+
+        fileManager.fileExists = true
+        try sut.deleteFile(atPath: fileURL.absoluteString)  // keep things clean by deleting created file
+    }
+
+    func test_appendData_withStringEncoding_textCantBeDecoded_returnsError() throws {
+        // Given
+        createFileManager()
+        let fileURL = try XCTUnwrap(fetchConfigurationFile())
+        let stringEncoding = OSFLSTStringEncoding.ascii
+        let contentToAdd = Configuration.emojiContent   // ASCII can't represent emoji so the conversion will fail.
+
+        // When
+        XCTAssertThrowsError(try sut.appendData(
+            .string(encoding: stringEncoding, value: contentToAdd),
+            atPath: fileURL.path(),
+            includeIntermediateDirectories: false)
+        ) {
+            // Then
+            XCTAssertEqual($0 as? OSFLSTFileManagerError, .cantDecodeData)
+        }
+    }
 }
 
 private extension OSFLSTFileManagerTests {
@@ -299,6 +383,8 @@ private extension OSFLSTFileManagerTests {
         static let fileContent = "Hello, world!"
         static let stringEncodedFileContent = "Hello, string-encoded world!"
         static let byteBufferEncodedFileContent = "Hello, byte buffer-encoded world!"
+        static let fileExtendedContent = " How are you?"
+        static let emojiContent = "🙃"
     }
 
     @discardableResult func createFileManager(error: MockFileManagerError? = nil, urlsWithinDirectory: [URL] = [], fileExists: Bool = true) -> MockFileManager {
