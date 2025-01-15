@@ -5,16 +5,18 @@ class MockFileManager: FileManager {
     var shouldDirectoryHaveContent: Bool
     var urlsWithinDirectory: [URL]
     var fileExists: Bool
+    var fileAttributes: [FileAttributeKey: Any]
 
     private(set) var capturedPath: String?
     private(set) var capturedIntermediateDirectories: Bool = false
     private(set) var capturedSearchPathDirectory: FileManager.SearchPathDirectory?
 
-    init(error: MockFileManagerError? = nil, shouldDirectoryHaveContent: Bool = false, urlsWithinDirectory: [URL] = [], fileExists: Bool = true) {
+    init(error: MockFileManagerError? = nil, shouldDirectoryHaveContent: Bool = false, urlsWithinDirectory: [URL] = [], fileExists: Bool = true, fileAttributes: [FileAttributeKey: Any] = [:]) {
         self.error = error
         self.shouldDirectoryHaveContent = shouldDirectoryHaveContent
         self.urlsWithinDirectory = urlsWithinDirectory
         self.fileExists = fileExists
+        self.fileAttributes = fileAttributes
     }
 }
 
@@ -23,6 +25,7 @@ enum MockFileManagerError: Error {
     case readDirectoryError
     case deleteDirectoryError
     case deleteFileError
+    case itemAttributesError
 }
 
 extension MockFileManager {
@@ -74,5 +77,15 @@ extension MockFileManager {
         if let error, error == .deleteFileError {
             throw error
         }
+    }
+
+    override func attributesOfItem(atPath path: String) throws -> [FileAttributeKey: Any] {
+        capturedPath = path
+
+        if let error, error == .itemAttributesError {
+            throw error
+        }
+
+        return fileAttributes
     }
 }

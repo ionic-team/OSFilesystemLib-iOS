@@ -113,6 +113,11 @@ extension OSFLSTManager: OSFLSTFileManager {
         try fileHandle?.close()
     }
 
+    public func getItemAttributes(atPath path: String) throws -> OSFLSTItemAttributeModel {
+        let attributesDictionary = try fileManager.attributesOfItem(atPath: path)
+        return .create(from: attributesDictionary)
+    }
+
     private func readFileAsBase64EncodedString(from fileURL: URL) throws -> String {
         try Data(contentsOf: fileURL).base64EncodedString()
     }

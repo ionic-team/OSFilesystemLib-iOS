@@ -373,6 +373,101 @@ final class OSFLSTFileManagerTests: XCTestCase {
             XCTAssertEqual($0 as? OSFLSTFileManagerError, .cantDecodeData)
         }
     }
+
+    // MARK: - 'getItemAttributes' tests
+    func test_getItemAttributes_forFile_returnsFileAttributeModelSuccessfully() throws {
+        // Given
+        let currentDate = Date()
+        let createHourDifference = 2
+        let modificationHourDifference = 1
+        let fileSize: UInt64 = 128
+        let fileAttributes = Configuration.fileAttributes(
+            consideringDate: currentDate, andDifference: (createHourDifference, modificationHourDifference), size: fileSize, isDirectoryType: false
+        )
+        let fileManager = createFileManager(fileAttributes: fileAttributes)
+        let testDirectory = "/test/directory"
+
+        // When
+        let fileAttributesModel = try sut.getItemAttributes(atPath: testDirectory)
+
+        // Then
+        XCTAssertEqual(fileManager.capturedPath, testDirectory)
+        XCTAssertEqual(fileAttributesModel.creationDateTimestamp, applyHourDifference(
+            createHourDifference, toTimestamp: currentDate.millisecondsSinceUnixEpoch
+        ))
+        XCTAssertEqual(fileAttributesModel.modificationDateTimestamp, applyHourDifference(
+            modificationHourDifference, toTimestamp: currentDate.millisecondsSinceUnixEpoch
+        ))
+        XCTAssertEqual(fileAttributesModel.size, fileSize)
+        XCTAssertEqual(fileAttributesModel.type, .file)
+    }
+
+    // MARK: - 'getItemAttributes' tests
+    func test_getItemAttributes_omittingValues_returnsFileAttributeModelSuccessfully() throws {
+        // Given
+       let fileAttributes = Configuration.fileAttributes(
+            isDirectoryType: false
+        )
+        let fileManager = createFileManager(fileAttributes: fileAttributes)
+        let testDirectory = "/test/directory"
+
+        // When
+        let fileAttributesModel = try sut.getItemAttributes(atPath: testDirectory)
+
+        // Then
+        XCTAssertEqual(fileManager.capturedPath, testDirectory)
+        XCTAssertEqual(fileAttributesModel.creationDateTimestamp, 0)
+        XCTAssertEqual(fileAttributesModel.modificationDateTimestamp, 0)
+        XCTAssertEqual(fileAttributesModel.size, 0)
+        XCTAssertEqual(fileAttributesModel.type, .file)
+    }
+
+    func test_getItemAttributes_forDirectory_returnsFileAttributeModelSuccessfully() throws {
+        // Given
+        let currentDate = Date()
+        let createHourDifference = 2
+        let modificationHourDifference = 1
+        let fileSize: UInt64 = 128
+        let fileAttributes = Configuration.fileAttributes(
+            consideringDate: currentDate, andDifference: (createHourDifference, modificationHourDifference), size: fileSize, isDirectoryType: true
+        )
+        let fileManager = createFileManager(fileAttributes: fileAttributes)
+        let testDirectory = "/test/directory"
+
+        // When
+        let fileAttributesModel = try sut.getItemAttributes(atPath: testDirectory)
+
+        // Then
+        XCTAssertEqual(fileManager.capturedPath, testDirectory)
+        XCTAssertEqual(fileAttributesModel.creationDateTimestamp, applyHourDifference(
+            createHourDifference, toTimestamp: currentDate.millisecondsSinceUnixEpoch
+        ))
+        XCTAssertEqual(fileAttributesModel.modificationDateTimestamp, applyHourDifference(
+            modificationHourDifference, toTimestamp: currentDate.millisecondsSinceUnixEpoch
+        ))
+        XCTAssertEqual(fileAttributesModel.size, fileSize)
+        XCTAssertEqual(fileAttributesModel.type, .directory)
+    }
+
+    func test_getItemAttributes_errorWhileRetrieving_returnsError() {
+        // Given
+        let error = MockFileManagerError.itemAttributesError
+        let currentDate = Date()
+        let createHourDifference = 2
+        let modificationHourDifference = 1
+        let fileSize: UInt64 = 128
+        let fileAttributes = Configuration.fileAttributes(
+            consideringDate: currentDate, andDifference: (createHourDifference, modificationHourDifference), size: fileSize, isDirectoryType: false
+        )
+        createFileManager(error: error, fileAttributes: fileAttributes)
+        let testDirectory = "/test/directory"
+
+        // When
+        XCTAssertThrowsError(try sut.getItemAttributes(atPath: testDirectory)) {
+            // Then
+            XCTAssertEqual($0 as? MockFileManagerError, error)
+        }
+    }
 }
 
 private extension OSFLSTFileManagerTests {
@@ -385,10 +480,34 @@ private extension OSFLSTFileManagerTests {
         static let byteBufferEncodedFileContent = "Hello, byte buffer-encoded world!"
         static let fileExtendedContent = " How are you?"
         static let emojiContent = "🙃"
+
+        static func fileAttributes(consideringDate date: Date? = nil, andDifference dateDifference: (creation: Int, modification: Int)? = nil, size: UInt64? = nil, isDirectoryType: Bool) -> [FileAttributeKey: Any] {
+            var result: [FileAttributeKey: Any] = [.type: isDirectoryType ? FileAttributeKey.FileTypeDirectoryValue : Configuration.fileName]
+
+            if let date {
+                let removeDifferenceToDate: (Int) -> Date? = {
+                    Calendar.current.date(byAdding: .hour, value: $0, to: date)
+                }
+                if let difference = dateDifference?.creation {
+                    result[.creationDate] = removeDifferenceToDate(-difference)
+                }
+                if let difference = dateDifference?.modification {
+                    result[.modificationDate] = removeDifferenceToDate(-difference)
+                }
+            }
+
+            if let size {
+                result[.size] = size
+            }
+
+            return result
+        }
     }
 
-    @discardableResult func createFileManager(error: MockFileManagerError? = nil, urlsWithinDirectory: [URL] = [], fileExists: Bool = true) -> MockFileManager {
-        let fileManager = MockFileManager(error: error, urlsWithinDirectory: urlsWithinDirectory, fileExists: fileExists)
+    @discardableResult func createFileManager(error: MockFileManagerError? = nil, urlsWithinDirectory: [URL] = [], fileExists: Bool = true, fileAttributes: [FileAttributeKey: Any] = [:]) -> MockFileManager {
+        let fileManager = MockFileManager(
+            error: error, urlsWithinDirectory: urlsWithinDirectory, fileExists: fileExists, fileAttributes: fileAttributes
+        )
         sut = OSFLSTManager(fileManager: fileManager)
 
         return fileManager
@@ -413,5 +532,9 @@ private extension OSFLSTFileManagerTests {
 
     func fetchConfigurationFile() -> URL? {
         Bundle(for: type(of: self)).url(forResource: Configuration.fileName, withExtension: Configuration.fileExtension)
+    }
+
+    func applyHourDifference(_ hour: Int, toTimestamp timestamp: Double) -> Double {
+        timestamp - Double(hour) * 60.0 * 60.0 * 1000.0
     }
 }

@@ -16,6 +16,7 @@ public protocol OSFLSTFileManager {
     func deleteFile(atPath: String) throws
     func saveFile(atPath: String, withEncodingAndData: OSFLSTEncodingValueMapper, includeIntermediateDirectories: Bool) throws -> URL
     func appendData(_ data: OSFLSTEncodingValueMapper, atPath: String, includeIntermediateDirectories: Bool) throws
+    func getItemAttributes(atPath: String) throws -> OSFLSTItemAttributeModel
 }
 
 enum OSFLSTFileManagerError: Error {
