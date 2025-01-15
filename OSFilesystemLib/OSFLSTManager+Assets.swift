@@ -14,17 +14,24 @@ public protocol OSFLSTFileManager {
     func readFile(atPath: String, withEncoding: OSFLSTEncoding) throws -> String
     func getFileURL(atPath: String, withSearchPath: OSFLSTSearchPath) throws -> URL
     func deleteFile(atPath: String) throws
+    func saveFile(atPath: String, withEncodingAndData: OSFLSTEncodingValueMapper, includeIntermediateDirectories: Bool) throws -> URL
 }
 
 enum OSFLSTFileManagerError: Error {
     case cantCreateURL
     case directoryNotFound
     case fileNotFound
+    case missingParentFolder
 }
 
 public enum OSFLSTEncoding {
     case byteBuffer
     case string(encoding: OSFLSTStringEncoding)
+}
+
+public enum OSFLSTEncodingValueMapper {
+    case byteBuffer(value: Data)
+    case string(encoding: OSFLSTStringEncoding, value: String)
 }
 
 public enum OSFLSTStringEncoding {

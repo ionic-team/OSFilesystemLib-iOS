@@ -1,6 +1,14 @@
 import Foundation
 
 extension URL {
+    var urlPath: String {
+        if #available(iOS 16.0, *) {
+            path()
+        } else {
+            path
+        }
+    }
+
     static func create(with path: String) -> URL {
         let url: URL
 
@@ -15,9 +23,9 @@ extension URL {
 
     func urlWithAppendingPath(_ path: String) -> URL {
         if #available(iOS 16.0, *) {
-            self.appending(path: path)
+            appending(path: path)
         } else {
-            self.appendingPathComponent(path)
+            appendingPathComponent(path)
         }
     }
 }

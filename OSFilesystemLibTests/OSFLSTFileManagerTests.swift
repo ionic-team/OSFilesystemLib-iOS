@@ -11,7 +11,9 @@ final class OSFLSTFileManagerTests: XCTestCase {
         createFileManager()
 
         // When
-        let fileContent = try fetchContent(forFile: (Configuration.fileName, Configuration.fileExtension), withEncoding: .string(encoding: .utf8))
+        let fileContent = try fetchContent(
+            forFile: (Configuration.fileName, Configuration.fileExtension), withEncoding: .string(encoding: .utf8)
+        )
 
         // Then
         XCTAssertEqual(fileContent, Configuration.fileContent)
@@ -22,7 +24,9 @@ final class OSFLSTFileManagerTests: XCTestCase {
         createFileManager()
 
         // When
-        let fileContent = try fetchContent(forFile: (Configuration.fileName, Configuration.fileExtension), withEncoding: .byteBuffer)
+        let fileContent = try fetchContent(
+            forFile: (Configuration.fileName, Configuration.fileExtension), withEncoding: .byteBuffer
+        )
 
         // Then
         XCTAssertEqual(fileContent, Configuration.fileContent)
@@ -150,13 +154,151 @@ final class OSFLSTFileManagerTests: XCTestCase {
             XCTAssertEqual($0 as? MockFileManagerError, error)
         }
     }
+
+    // MARK: - 'saveFile' tests
+    func test_saveFile_withStringEncoding_savesFileSuccessfullyAndReturnsItsURL() throws {
+        // Given
+        let fileManager = createFileManager()
+        let fileURL = try XCTUnwrap(fetchConfigurationFile())
+            .deletingLastPathComponent()
+            .appending(path: "\(Configuration.newFileName).\(Configuration.fileExtension)")
+        let stringEncoding = OSFLSTStringEncoding.ascii
+        let contentToSave = Configuration.stringEncodedFileContent
+        let shouldIncludeIntermediateDirectories = false
+
+        // When
+        let savedFileURL = try sut.saveFile(
+            atPath: fileURL.path(),
+            withEncodingAndData: .string(encoding: stringEncoding, value: contentToSave),
+            includeIntermediateDirectories: shouldIncludeIntermediateDirectories
+        )
+
+        // Then
+        XCTAssertEqual(fileManager.capturedIntermediateDirectories, shouldIncludeIntermediateDirectories)
+        XCTAssertEqual(savedFileURL, fileURL)
+
+        let savedFileContent = try fetchContent(
+            forFile: (Configuration.newFileName, Configuration.fileExtension), withEncoding: .string(encoding: stringEncoding)
+        )
+        XCTAssertEqual(savedFileContent, contentToSave)
+
+        try sut.deleteFile(atPath: fileURL.absoluteString)  // keep things clean by deleting created file
+    }
+
+    func test_saveFile_withByteBufferEncoding_savesFileSuccessfullyAndReturnsItsURL() throws {
+        // Given
+        let fileManager = createFileManager()
+        let fileURL = try XCTUnwrap(fetchConfigurationFile())
+            .deletingLastPathComponent()
+            .appending(path: "\(Configuration.newFileName).\(Configuration.fileExtension)")
+        let contentToSave = Configuration.byteBufferEncodedFileContent
+        let contentToSaveData = try XCTUnwrap(contentToSave.data(using: .utf8))
+        let shouldIncludeIntermediateDirectories = false
+
+        // When
+        let savedFileURL = try sut.saveFile(
+            atPath: fileURL.path(),
+            withEncodingAndData: .byteBuffer(value: contentToSaveData),
+            includeIntermediateDirectories: shouldIncludeIntermediateDirectories
+        )
+
+        // Then
+        XCTAssertEqual(fileManager.capturedIntermediateDirectories, shouldIncludeIntermediateDirectories)
+        XCTAssertEqual(savedFileURL, fileURL)
+
+        let savedFileContent = try fetchContent(
+            forFile: (Configuration.newFileName, Configuration.fileExtension), withEncoding: .byteBuffer
+        )
+        XCTAssertEqual(savedFileContent, contentToSave)
+
+        try sut.deleteFile(atPath: fileURL.absoluteString)  // keep things clean by deleting created file
+    }
+
+    func test_saveFile_parentFolderMissing_shouldCreateIt_savesFileSuccessfullyAndReturnsItsURL() throws {
+        // Given
+        let fileManager = createFileManager(fileExists: false)
+        let parentFolderURL = try XCTUnwrap(fetchConfigurationFile())
+            .deletingLastPathComponent()
+        let fileURL = parentFolderURL
+            .appending(path: "\(Configuration.newFileName).\(Configuration.fileExtension)")
+        let stringEncoding = OSFLSTStringEncoding.ascii
+        let contentToSave = Configuration.stringEncodedFileContent
+        let shouldIncludeIntermediateDirectories = true
+
+        // When
+        let savedFileURL = try sut.saveFile(
+            atPath: fileURL.path(),
+            withEncodingAndData: .string(encoding: stringEncoding, value: contentToSave),
+            includeIntermediateDirectories: shouldIncludeIntermediateDirectories
+        )
+
+        // Then
+        XCTAssertEqual(fileManager.capturedIntermediateDirectories, shouldIncludeIntermediateDirectories)
+        XCTAssertEqual(fileManager.capturedPath, parentFolderURL.relativePath)
+        XCTAssertEqual(savedFileURL, fileURL)
+
+        let savedFileContent = try fetchContent(
+            forFile: (Configuration.newFileName, Configuration.fileExtension), withEncoding: .string(encoding: stringEncoding)
+        )
+        XCTAssertEqual(savedFileContent, contentToSave)
+
+        fileManager.fileExists = true
+        try sut.deleteFile(atPath: fileURL.absoluteString)  // keep things clean by deleting created file
+    }
+
+    func test_saveFile_parentFolderMissing_failsCreatingIt_returnsError() throws {
+        // Given
+        createFileManager(error: .createDirectoryError, fileExists: false)
+        let parentFolderURL = try XCTUnwrap(fetchConfigurationFile())
+            .deletingLastPathComponent()
+        let fileURL = parentFolderURL
+            .appending(path: "\(Configuration.newFileName).\(Configuration.fileExtension)")
+        let stringEncoding = OSFLSTStringEncoding.ascii
+        let contentToSave = Configuration.stringEncodedFileContent
+        let shouldIncludeIntermediateDirectories = true
+
+        // When
+        XCTAssertThrowsError(try sut.saveFile(
+            atPath: fileURL.path(),
+            withEncodingAndData: .string(encoding: stringEncoding, value: contentToSave),
+            includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
+        ) {
+            // Then
+            XCTAssertEqual($0 as? MockFileManagerError, .createDirectoryError)
+        }
+    }
+
+    func test_saveFile_parentFolderMissing_shouldntCreateIt_returnsError() throws {
+        // Given
+        createFileManager(fileExists: false)
+        let parentFolderURL = try XCTUnwrap(fetchConfigurationFile())
+            .deletingLastPathComponent()
+        let fileURL = parentFolderURL
+            .appending(path: "\(Configuration.newFileName).\(Configuration.fileExtension)")
+        let stringEncoding = OSFLSTStringEncoding.ascii
+        let contentToSave = Configuration.stringEncodedFileContent
+        let shouldIncludeIntermediateDirectories = false
+
+        // When
+        XCTAssertThrowsError(try sut.saveFile(
+            atPath: fileURL.path(),
+            withEncodingAndData: .string(encoding: stringEncoding, value: contentToSave),
+            includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
+        ) {
+            // Then
+            XCTAssertEqual($0 as? OSFLSTFileManagerError, .missingParentFolder)
+        }
+    }
 }
 
 private extension OSFLSTFileManagerTests {
     struct Configuration {
         static let fileName = "file"
+        static let newFileName = "new_file"
         static let fileExtension = "txt"
         static let fileContent = "Hello, world!"
+        static let stringEncodedFileContent = "Hello, string-encoded world!"
+        static let byteBufferEncodedFileContent = "Hello, byte buffer-encoded world!"
     }
 
     @discardableResult func createFileManager(error: MockFileManagerError? = nil, urlsWithinDirectory: [URL] = [], fileExists: Bool = true) -> MockFileManager {
@@ -181,5 +323,9 @@ private extension OSFLSTFileManagerTests {
 
         fileURLUnicodeScalars.removeAll(where: CharacterSet.newlines.contains)
         return String(fileURLUnicodeScalars)
+    }
+
+    func fetchConfigurationFile() -> URL? {
+        Bundle(for: type(of: self)).url(forResource: Configuration.fileName, withExtension: Configuration.fileExtension)
     }
 }
