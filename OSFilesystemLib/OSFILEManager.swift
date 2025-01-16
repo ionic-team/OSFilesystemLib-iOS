@@ -1,6 +1,6 @@
 import Foundation
 
-public struct OSFLSTManager {
+public struct OSFILEManager {
     private let fileManager: FileManager
 
     public init(fileManager: FileManager) {
@@ -8,7 +8,7 @@ public struct OSFLSTManager {
     }
 }
 
-extension OSFLSTManager: OSFLSTDirectoryManager {
+extension OSFILEManager: OSFILEDirectoryManager {
     public func createDirectory(atPath path: String, includeIntermediateDirectories: Bool) throws {
         let pathURL = URL.create(with: path)
         try fileManager.createDirectory(at: pathURL, withIntermediateDirectories: includeIntermediateDirectories)
@@ -19,7 +19,7 @@ extension OSFLSTManager: OSFLSTDirectoryManager {
         if !includeIntermediateDirectories {
             let directoryContents = try listDirectory(atPath: path)
             if !directoryContents.isEmpty {
-                throw OSFLSTDirectoryManagerError.notEmpty
+                throw OSFILEDirectoryManagerError.notEmpty
             }
         }
 
@@ -32,8 +32,8 @@ extension OSFLSTManager: OSFLSTDirectoryManager {
     }
 }
 
-extension OSFLSTManager: OSFLSTFileManager {
-    public func readFile(atPath path: String, withEncoding encoding: OSFLSTEncoding) throws -> String {
+extension OSFILEManager: OSFILEFileManager {
+    public func readFile(atPath path: String, withEncoding encoding: OSFILEEncoding) throws -> String {
         let fileURL = URL.create(with: path)
 
         // Check if the URL requires security-scoped access
@@ -55,7 +55,7 @@ extension OSFLSTManager: OSFLSTFileManager {
         }
     }
 
-    public func getFileURL(atPath path: String, withSearchPath searchPath: OSFLSTSearchPath) throws -> URL {
+    public func getFileURL(atPath path: String, withSearchPath searchPath: OSFILESearchPath) throws -> URL {
         return switch searchPath {
         case .directory(let directorySearchPath):
             try resolveDirectoryURL(for: directorySearchPath.fileManagerSearchPathDirectory, with: path)
@@ -66,13 +66,13 @@ extension OSFLSTManager: OSFLSTFileManager {
 
     public func deleteFile(atPath path: String) throws {
         guard fileManager.fileExists(atPath: path) else {
-            throw OSFLSTFileManagerError.fileNotFound
+            throw OSFILEFileManagerError.fileNotFound
         }
 
         try fileManager.removeItem(atPath: path)
     }
 
-    @discardableResult public func saveFile(atPath path: String, withEncodingAndData encodingMapper: OSFLSTEncodingValueMapper, includeIntermediateDirectories: Bool) throws -> URL {
+    @discardableResult public func saveFile(atPath path: String, withEncodingAndData encodingMapper: OSFILEEncodingValueMapper, includeIntermediateDirectories: Bool) throws -> URL {
         let fileURL = URL.create(with: path)
         let fileDirectoryURL = fileURL.deletingLastPathComponent()
 
@@ -80,7 +80,7 @@ extension OSFLSTManager: OSFLSTFileManager {
             if includeIntermediateDirectories {
                 try createDirectory(atPath: fileDirectoryURL.urlPath, includeIntermediateDirectories: true)
             } else {
-                throw OSFLSTFileManagerError.missingParentFolder
+                throw OSFILEFileManagerError.missingParentFolder
             }
         }
 
@@ -94,7 +94,7 @@ extension OSFLSTManager: OSFLSTFileManager {
         return fileURL
     }
 
-    public func appendData(_ encodingMapper: OSFLSTEncodingValueMapper, atPath path: String, includeIntermediateDirectories: Bool) throws {
+    public func appendData(_ encodingMapper: OSFILEEncodingValueMapper, atPath path: String, includeIntermediateDirectories: Bool) throws {
         guard fileManager.fileExists(atPath: path) else {
             try saveFile(atPath: path, withEncodingAndData: encodingMapper, includeIntermediateDirectories: includeIntermediateDirectories)
             return
@@ -106,7 +106,7 @@ extension OSFLSTManager: OSFLSTFileManager {
             dataToAppend = value
         case .string(let encoding, let value):
             guard let valueData = value.data(using: encoding.stringEncoding) else {
-                throw OSFLSTFileManagerError.cantDecodeData
+                throw OSFILEFileManagerError.cantDecodeData
             }
             dataToAppend = valueData
         }
@@ -117,7 +117,7 @@ extension OSFLSTManager: OSFLSTFileManager {
         try fileHandle?.close()
     }
 
-    public func getItemAttributes(atPath path: String) throws -> OSFLSTItemAttributeModel {
+    public func getItemAttributes(atPath path: String) throws -> OSFILEItemAttributeModel {
         let attributesDictionary = try fileManager.attributesOfItem(atPath: path)
         return .create(from: attributesDictionary)
     }
@@ -133,31 +133,33 @@ extension OSFLSTManager: OSFLSTFileManager {
             try fileManager.copyItem(atPath: origin, toPath: destination)
         }
     }
+}
 
-    private func readFileAsBase64EncodedString(from fileURL: URL) throws -> String {
+private extension OSFILEManager {
+    func readFileAsBase64EncodedString(from fileURL: URL) throws -> String {
         try Data(contentsOf: fileURL).base64EncodedString()
     }
 
-    private func readFileAsString(from fileURL: URL, using stringEncoding: String.Encoding) throws -> String {
+    func readFileAsString(from fileURL: URL, using stringEncoding: String.Encoding) throws -> String {
         try String(contentsOf: fileURL, encoding: stringEncoding)
     }
 
-    private func resolveDirectoryURL(for searchPath: FileManager.SearchPathDirectory, with path: String) throws -> URL {
+    func resolveDirectoryURL(for searchPath: FileManager.SearchPathDirectory, with path: String) throws -> URL {
         guard let directoryURL = fileManager.urls(for: searchPath, in: .userDomainMask).first else {
-            throw OSFLSTFileManagerError.directoryNotFound
+            throw OSFILEFileManagerError.directoryNotFound
         }
 
         return path.isEmpty ? directoryURL : directoryURL.appendingPathComponent(path)
     }
 
-    private func resolveRawURL(from path: String) throws -> URL {
+    func resolveRawURL(from path: String) throws -> URL {
         guard let rawURL = URL(string: path) else {
-            throw OSFLSTFileManagerError.cantCreateURL
+            throw OSFILEFileManagerError.cantCreateURL
         }
         return rawURL
     }
 
-    private func copy(fromPath origin: String, toPath destination: String, performOperation: () throws -> Void) throws {
+    func copy(fromPath origin: String, toPath destination: String, performOperation: () throws -> Void) throws {
         guard origin != destination else {
             return
         }

@@ -2,8 +2,8 @@ import XCTest
 
 @testable import OSFilesystemLib
 
-final class OSFLSTDirectoryManagerTests: XCTestCase {
-    private var sut: OSFLSTManager!
+final class OSFILEDirectoryManagerTests: XCTestCase {
+    private var sut: OSFILEManager!
 
     // MARK: - 'createDirectory' tests
     func test_createDirectory_shouldBeSuccessful() throws {
@@ -88,7 +88,7 @@ final class OSFLSTDirectoryManagerTests: XCTestCase {
             try sut.removeDirectory(atPath: testDirectory, includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
         ) {
             // Then
-            XCTAssertEqual($0 as? OSFLSTDirectoryManagerError, .notEmpty)
+            XCTAssertEqual($0 as? OSFILEDirectoryManagerError, .notEmpty)
         }
     }
 
@@ -136,10 +136,10 @@ final class OSFLSTDirectoryManagerTests: XCTestCase {
     }
 }
 
-private extension OSFLSTDirectoryManagerTests {
+private extension OSFILEDirectoryManagerTests {
     @discardableResult func createFileManager(with error: MockFileManagerError? = nil, shouldDirectoryHaveContent: Bool = false) -> MockFileManager {
         let fileManager = MockFileManager(error: error, shouldDirectoryHaveContent: shouldDirectoryHaveContent)
-        sut = OSFLSTManager(fileManager: fileManager)
+        sut = OSFILEManager(fileManager: fileManager)
 
         return fileManager
     }

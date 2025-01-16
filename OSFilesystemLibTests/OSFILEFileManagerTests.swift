@@ -2,12 +2,12 @@ import XCTest
 
 @testable import OSFilesystemLib
 
-final class OSFLSTFileManagerTests: XCTestCase {
-    private var sut: OSFLSTManager!
+final class OSFILEFileManagerTests: XCTestCase {
+    private var sut: OSFILEManager!
 }
 
 // MARK: - 'readFile` tests
-extension OSFLSTFileManagerTests {
+extension OSFILEFileManagerTests {
     func test_readFile_withStringEncoding_returnsContentSuccessfully() throws {
         // Given
         createFileManager()
@@ -36,13 +36,13 @@ extension OSFLSTFileManagerTests {
 }
 
 // MARK: - 'getFileURL' tests
-extension OSFLSTFileManagerTests {
+extension OSFILEFileManagerTests {
     func test_getFileURL_fromDirectorySearchPath_containingSingleFile_returnsFileSuccessfully() throws {
         // Given
         let fileURL: URL = try XCTUnwrap(.init(string: "/file/directory"))
         let fileManager = createFileManager(urlsWithinDirectory: [fileURL])
         let filePath = "/test/directory"
-        let searchPathDirectory = OSFLSTSearchPathDirectory.cache
+        let searchPathDirectory = OSFILESearchPathDirectory.cache
 
         // When
         let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .directory(searchPath: searchPathDirectory))
@@ -58,7 +58,7 @@ extension OSFLSTFileManagerTests {
         let ignoredFileURL: URL = try XCTUnwrap(.init(string: "another_file/directory"))
         let fileManager = createFileManager(urlsWithinDirectory: [fileURL, ignoredFileURL])
         let filePath = "/test/directory"
-        let searchPathDirectory = OSFLSTSearchPathDirectory.cache
+        let searchPathDirectory = OSFILESearchPathDirectory.cache
 
         // When
         let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .directory(searchPath: searchPathDirectory))
@@ -72,12 +72,12 @@ extension OSFLSTFileManagerTests {
         // Given
         createFileManager()
         let filePath = "/test/directory"
-        let searchPathDirectory = OSFLSTSearchPathDirectory.cache
+        let searchPathDirectory = OSFILESearchPathDirectory.cache
 
         // When
         XCTAssertThrowsError(try sut.getFileURL(atPath: filePath, withSearchPath: .directory(searchPath: searchPathDirectory))) {
             // Then
-            XCTAssertEqual($0 as? OSFLSTFileManagerError, .directoryNotFound)
+            XCTAssertEqual($0 as? OSFILEFileManagerError, .directoryNotFound)
         }
     }
 
@@ -86,7 +86,7 @@ extension OSFLSTFileManagerTests {
         let fileURL: URL = try XCTUnwrap(.init(string: "/file/directory"))
         let fileManager = createFileManager(urlsWithinDirectory: [fileURL])
         let emptyFilePath = ""
-        let searchPathDirectory = OSFLSTSearchPathDirectory.cache
+        let searchPathDirectory = OSFILESearchPathDirectory.cache
 
         // When
         let returnedURL = try sut.getFileURL(atPath: emptyFilePath, withSearchPath: .directory(searchPath: searchPathDirectory))
@@ -116,13 +116,13 @@ extension OSFLSTFileManagerTests {
         // When
         XCTAssertThrowsError(try sut.getFileURL(atPath: emptyFilePath, withSearchPath: .raw)) {
             // Then
-            XCTAssertEqual($0 as? OSFLSTFileManagerError, .cantCreateURL)
+            XCTAssertEqual($0 as? OSFILEFileManagerError, .cantCreateURL)
         }
     }
 }
 
 // MARK: - 'deleteFile' tests
-extension OSFLSTFileManagerTests {
+extension OSFILEFileManagerTests {
     func test_deleteFile_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager()
@@ -143,7 +143,7 @@ extension OSFLSTFileManagerTests {
         // When
         XCTAssertThrowsError(try sut.deleteFile(atPath: filePath)) {
             // Then
-            XCTAssertEqual($0 as? OSFLSTFileManagerError, .fileNotFound)
+            XCTAssertEqual($0 as? OSFILEFileManagerError, .fileNotFound)
         }
     }
 
@@ -162,14 +162,14 @@ extension OSFLSTFileManagerTests {
 }
 
 // MARK: - 'saveFile' tests
-extension OSFLSTFileManagerTests {
+extension OSFILEFileManagerTests {
     func test_saveFile_withStringEncoding_savesFileSuccessfullyAndReturnsItsURL() throws {
         // Given
         let fileManager = createFileManager()
         let fileURL = try XCTUnwrap(fetchConfigurationFile())
             .deletingLastPathComponent()
             .appending(path: "\(Configuration.newFileName).\(Configuration.fileExtension)")
-        let stringEncoding = OSFLSTStringEncoding.ascii
+        let stringEncoding = OSFILEStringEncoding.ascii
         let contentToSave = Configuration.stringEncodedFileContent
         let shouldIncludeIntermediateDirectories = false
 
@@ -228,7 +228,7 @@ extension OSFLSTFileManagerTests {
             .deletingLastPathComponent()
         let fileURL = parentFolderURL
             .appending(path: "\(Configuration.newFileName).\(Configuration.fileExtension)")
-        let stringEncoding = OSFLSTStringEncoding.ascii
+        let stringEncoding = OSFILEStringEncoding.ascii
         let contentToSave = Configuration.stringEncodedFileContent
         let shouldIncludeIntermediateDirectories = true
 
@@ -260,7 +260,7 @@ extension OSFLSTFileManagerTests {
             .deletingLastPathComponent()
         let fileURL = parentFolderURL
             .appending(path: "\(Configuration.newFileName).\(Configuration.fileExtension)")
-        let stringEncoding = OSFLSTStringEncoding.ascii
+        let stringEncoding = OSFILEStringEncoding.ascii
         let contentToSave = Configuration.stringEncodedFileContent
         let shouldIncludeIntermediateDirectories = false
 
@@ -271,18 +271,18 @@ extension OSFLSTFileManagerTests {
             includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
         ) {
             // Then
-            XCTAssertEqual($0 as? OSFLSTFileManagerError, .missingParentFolder)
+            XCTAssertEqual($0 as? OSFILEFileManagerError, .missingParentFolder)
         }
     }
 }
 
 // MARK: - 'appendData' tests
-extension OSFLSTFileManagerTests {
+extension OSFILEFileManagerTests {
     func test_appendData_withStringEncoding_savesFileSuccessfully() throws {
         // Given
         createFileManager()
         let fileURL = try XCTUnwrap(fetchConfigurationFile())
-        let stringEncoding = OSFLSTStringEncoding.ascii
+        let stringEncoding = OSFILEStringEncoding.ascii
         let contentToAdd = Configuration.fileExtendedContent
 
         // When
@@ -341,7 +341,7 @@ extension OSFLSTFileManagerTests {
             .deletingLastPathComponent()
         let fileURL = parentFolderURL
             .appending(path: "\(Configuration.newFileName).\(Configuration.fileExtension)")
-        let stringEncoding = OSFLSTStringEncoding.ascii
+        let stringEncoding = OSFILEStringEncoding.ascii
         let contentToAdd = Configuration.stringEncodedFileContent
         let shouldIncludeIntermediateDirectories = true
 
@@ -370,7 +370,7 @@ extension OSFLSTFileManagerTests {
         // Given
         createFileManager()
         let fileURL = try XCTUnwrap(fetchConfigurationFile())
-        let stringEncoding = OSFLSTStringEncoding.ascii
+        let stringEncoding = OSFILEStringEncoding.ascii
         let contentToAdd = Configuration.emojiContent   // ASCII can't represent emoji so the conversion will fail.
 
         // When
@@ -380,13 +380,13 @@ extension OSFLSTFileManagerTests {
             includeIntermediateDirectories: false)
         ) {
             // Then
-            XCTAssertEqual($0 as? OSFLSTFileManagerError, .cantDecodeData)
+            XCTAssertEqual($0 as? OSFILEFileManagerError, .cantDecodeData)
         }
     }
 }
 
 // MARK: - 'getItemAttributes' tests
-extension OSFLSTFileManagerTests {
+extension OSFILEFileManagerTests {
     func test_getItemAttributes_forFile_returnsFileAttributeModelSuccessfully() throws {
         // Given
         let currentDate = Date()
@@ -482,7 +482,7 @@ extension OSFLSTFileManagerTests {
 }
 
 // MARK: - 'renameItem' tests
-extension OSFLSTFileManagerTests {
+extension OSFILEFileManagerTests {
     func test_renameItem_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager(fileExists: false)
@@ -542,7 +542,7 @@ extension OSFLSTFileManagerTests {
 }
 
 // MARK: - 'copyItem' tests
-extension OSFLSTFileManagerTests {
+extension OSFILEFileManagerTests {
     func test_copyItem_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager(fileExists: false)
@@ -601,7 +601,7 @@ extension OSFLSTFileManagerTests {
     }
 }
 
-private extension OSFLSTFileManagerTests {
+private extension OSFILEFileManagerTests {
     struct Configuration {
         static let fileName = "file"
         static let newFileName = "new_file"
@@ -643,12 +643,12 @@ private extension OSFLSTFileManagerTests {
             fileAttributes: fileAttributes,
             shouldBeDirectory: shouldBeDirectory
         )
-        sut = OSFLSTManager(fileManager: fileManager)
+        sut = OSFILEManager(fileManager: fileManager)
 
         return fileManager
     }
 
-    func fetchContent(forFile file: (name: String, extension: String), withEncoding encoding: OSFLSTEncoding) throws -> String {
+    func fetchContent(forFile file: (name: String, extension: String), withEncoding encoding: OSFILEEncoding) throws -> String {
         let fileURL = try XCTUnwrap(Bundle(for: type(of: self)).url(forResource: file.name, withExtension: file.extension))
         let fileURLContent = try sut.readFile(atPath: fileURL.path(), withEncoding: encoding)
 
