@@ -7,9 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		756346652C00F21000685AA3 /* OSFilesystemLib.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756346612C00F21000685AA3 /* OSFilesystemLib.swift */; };
+		751328D52D3175170031BDD0 /* OSFILEManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751328D42D3175170031BDD0 /* OSFILEManager.swift */; };
+		751328DA2D318DBA0031BDD0 /* OSFILEDirectoryManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751328D92D318DBA0031BDD0 /* OSFILEDirectoryManagerTests.swift */; };
+		751328DB2D318E770031BDD0 /* MockFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751328D82D3179430031BDD0 /* MockFileManager.swift */; };
 		7575CF6A2BFCEE6F008F3FD0 /* OSFilesystemLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7575CF612BFCEE6F008F3FD0 /* OSFilesystemLib.framework */; };
-		7575CF802BFCEEEA008F3FD0 /* OSFilesystemLib.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7575CF7D2BFCEEEA008F3FD0 /* OSFilesystemLib.swift */; };
+		75F8380B2D37E42000FCE044 /* OSFILEItemAttributeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75F8380A2D37E42000FCE044 /* OSFILEItemAttributeModel.swift */; };
+		75F84D662D39360E00892C89 /* OSFILEManager+Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75F84D652D39360E00892C89 /* OSFILEManager+Errors.swift */; };
+		75F84D682D39362F00892C89 /* OSFILEManager+Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75F84D672D39362F00892C89 /* OSFILEManager+Enums.swift */; };
+		75FEB2B02D3546D7007C2686 /* OSFILEManager+Protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75FEB2AF2D3546D7007C2686 /* OSFILEManager+Protocols.swift */; };
+		75FEB2B22D35470C007C2686 /* URL+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75FEB2B12D35470C007C2686 /* URL+Extension.swift */; };
+		75FEB2B42D35479B007C2686 /* OSFILEFileManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75FEB2B32D35479B007C2686 /* OSFILEFileManagerTests.swift */; };
+		75FEB2B72D355F21007C2686 /* file.txt in Resources */ = {isa = PBXBuildFile; fileRef = 75FEB2B62D355F21007C2686 /* file.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -23,10 +31,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		756346612C00F21000685AA3 /* OSFilesystemLib.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OSFilesystemLib.swift; sourceTree = "<group>"; };
+		751328D42D3175170031BDD0 /* OSFILEManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSFILEManager.swift; sourceTree = "<group>"; };
+		751328D82D3179430031BDD0 /* MockFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockFileManager.swift; sourceTree = "<group>"; };
+		751328D92D318DBA0031BDD0 /* OSFILEDirectoryManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSFILEDirectoryManagerTests.swift; sourceTree = "<group>"; };
 		7575CF612BFCEE6F008F3FD0 /* OSFilesystemLib.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = OSFilesystemLib.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7575CF692BFCEE6F008F3FD0 /* OSFilesystemLibTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OSFilesystemLibTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		7575CF7D2BFCEEEA008F3FD0 /* OSFilesystemLib.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OSFilesystemLib.swift; sourceTree = "<group>"; };
+		75F8380A2D37E42000FCE044 /* OSFILEItemAttributeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSFILEItemAttributeModel.swift; sourceTree = "<group>"; };
+		75F84D652D39360E00892C89 /* OSFILEManager+Errors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OSFILEManager+Errors.swift"; sourceTree = "<group>"; };
+		75F84D672D39362F00892C89 /* OSFILEManager+Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OSFILEManager+Enums.swift"; sourceTree = "<group>"; };
+		75FEB2AF2D3546D7007C2686 /* OSFILEManager+Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OSFILEManager+Protocols.swift"; sourceTree = "<group>"; };
+		75FEB2B12D35470C007C2686 /* URL+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+Extension.swift"; sourceTree = "<group>"; };
+		75FEB2B32D35479B007C2686 /* OSFILEFileManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSFILEFileManagerTests.swift; sourceTree = "<group>"; };
+		75FEB2B62D355F21007C2686 /* file.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = file.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,7 +85,12 @@
 		7575CF632BFCEE6F008F3FD0 /* OSFilesystemLib */ = {
 			isa = PBXGroup;
 			children = (
-				756346612C00F21000685AA3 /* OSFilesystemLib.swift */,
+				751328D42D3175170031BDD0 /* OSFILEManager.swift */,
+				75F84D672D39362F00892C89 /* OSFILEManager+Enums.swift */,
+				75F84D652D39360E00892C89 /* OSFILEManager+Errors.swift */,
+				75FEB2AF2D3546D7007C2686 /* OSFILEManager+Protocols.swift */,
+				75F8380A2D37E42000FCE044 /* OSFILEItemAttributeModel.swift */,
+				75FEB2B12D35470C007C2686 /* URL+Extension.swift */,
 			);
 			path = OSFilesystemLib;
 			sourceTree = "<group>";
@@ -77,7 +98,10 @@
 		7575CF6D2BFCEE6F008F3FD0 /* OSFilesystemLibTests */ = {
 			isa = PBXGroup;
 			children = (
-				7575CF7D2BFCEEEA008F3FD0 /* OSFilesystemLib.swift */,
+				751328D82D3179430031BDD0 /* MockFileManager.swift */,
+				751328D92D318DBA0031BDD0 /* OSFILEDirectoryManagerTests.swift */,
+				75FEB2B32D35479B007C2686 /* OSFILEFileManagerTests.swift */,
+				75FEB2B62D355F21007C2686 /* file.txt */,
 			);
 			path = OSFilesystemLibTests;
 			sourceTree = "<group>";
@@ -140,15 +164,15 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1510;
-				LastUpgradeCheck = 1510;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					7575CF602BFCEE6F008F3FD0 = {
 						CreatedOnToolsVersion = 15.1;
-						LastSwiftMigration = 1510;
+						LastSwiftMigration = 1600;
 					};
 					7575CF682BFCEE6F008F3FD0 = {
 						CreatedOnToolsVersion = 15.1;
-						LastSwiftMigration = 1510;
+						LastSwiftMigration = 1600;
 					};
 				};
 			};
@@ -186,6 +210,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				75FEB2B72D355F21007C2686 /* file.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,7 +242,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				756346652C00F21000685AA3 /* OSFilesystemLib.swift in Sources */,
+				75F8380B2D37E42000FCE044 /* OSFILEItemAttributeModel.swift in Sources */,
+				75FEB2B02D3546D7007C2686 /* OSFILEManager+Protocols.swift in Sources */,
+				75F84D682D39362F00892C89 /* OSFILEManager+Enums.swift in Sources */,
+				751328D52D3175170031BDD0 /* OSFILEManager.swift in Sources */,
+				75F84D662D39360E00892C89 /* OSFILEManager+Errors.swift in Sources */,
+				75FEB2B22D35470C007C2686 /* URL+Extension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -225,7 +255,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7575CF802BFCEEEA008F3FD0 /* OSFilesystemLib.swift in Sources */,
+				751328DA2D318DBA0031BDD0 /* OSFILEDirectoryManagerTests.swift in Sources */,
+				751328DB2D318E770031BDD0 /* MockFileManager.swift in Sources */,
+				75FEB2B42D35479B007C2686 /* OSFILEFileManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -374,6 +406,7 @@
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -384,7 +417,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -408,6 +441,7 @@
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -418,7 +452,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -439,7 +473,6 @@
 		7575CF772BFCEE6F008F3FD0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -461,7 +494,6 @@
 		7575CF782BFCEE6F008F3FD0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
