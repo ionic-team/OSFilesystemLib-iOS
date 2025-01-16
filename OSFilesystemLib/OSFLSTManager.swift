@@ -100,11 +100,15 @@ extension OSFLSTManager: OSFLSTFileManager {
             return
         }
 
-        guard let dataToAppend = switch encodingMapper {
-        case .byteBuffer(let value): value
-        case .string(let encoding, let value): value.data(using: encoding.stringEncoding)
-        } else {
-            throw OSFLSTFileManagerError.cantDecodeData
+        let dataToAppend: Data
+        switch encodingMapper {
+        case .byteBuffer(let value):
+            dataToAppend = value
+        case .string(let encoding, let value):
+            guard let valueData = value.data(using: encoding.stringEncoding) else {
+                throw OSFLSTFileManagerError.cantDecodeData
+            }
+            dataToAppend = valueData
         }
 
         let fileHandle = FileHandle(forWritingAtPath: path)
