@@ -1,18 +1,18 @@
 import Foundation
 
 public protocol OSFILEDirectoryManager {
-    func createDirectory(atPath: String, includeIntermediateDirectories: Bool) throws
-    func removeDirectory(atPath: String, includeIntermediateDirectories: Bool) throws
-    func listDirectory(atPath: String) throws -> [URL]
+    func createDirectory(atURL: URL, includeIntermediateDirectories: Bool) throws
+    func removeDirectory(atURL: URL, includeIntermediateDirectories: Bool) throws
+    func listDirectory(atURL: URL) throws -> [URL]
 }
 
 public protocol OSFILEFileManager {
-    func readFile(atPath: String, withEncoding: OSFILEEncoding) throws -> String
+    func readFile(atURL: URL, withEncoding: OSFILEEncoding) throws -> String
     func getFileURL(atPath: String, withSearchPath: OSFILESearchPath) throws -> URL
-    func deleteFile(atPath: String) throws
-    func saveFile(atPath: String, withEncodingAndData: OSFILEEncodingValueMapper, includeIntermediateDirectories: Bool) throws -> URL
-    func appendData(_ data: OSFILEEncodingValueMapper, atPath: String, includeIntermediateDirectories: Bool) throws
+    func deleteFile(atURL: URL) throws
+    func saveFile(atURL: URL, withEncodingAndData: OSFILEEncodingValueMapper, includeIntermediateDirectories: Bool) throws -> URL
+    func appendData(_ data: OSFILEEncodingValueMapper, atURL: URL, includeIntermediateDirectories: Bool) throws
     func getItemAttributes(atPath: String) throws -> OSFILEItemAttributeModel
-    func renameItem(fromPath: String, toPath: String) throws
-    func copyItem(fromPath: String, toPath: String) throws
+    func renameItem(fromURL: URL, toURL: URL) throws
+    func copyItem(fromURL: URL, toURL: URL) throws
 }

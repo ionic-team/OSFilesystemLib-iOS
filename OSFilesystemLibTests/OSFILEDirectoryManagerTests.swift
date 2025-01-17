@@ -9,11 +9,11 @@ final class OSFILEDirectoryManagerTests: XCTestCase {
     func test_createDirectory_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager()
-        let testDirectory = "/test/directory"
+        let testDirectory = URL(filePath: "/test/directory")
         let shouldIncludeIntermediateDirectories = false
 
         // When
-        try sut.createDirectory(atPath: testDirectory, includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
+        try sut.createDirectory(atURL: testDirectory, includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
 
         // Then
         XCTAssertEqual(fileManager.capturedPath, testDirectory)
@@ -24,12 +24,12 @@ final class OSFILEDirectoryManagerTests: XCTestCase {
         // Given
         let error = MockFileManagerError.createDirectoryError
         createFileManager(with: error)
-        let testDirectory = "/test/directory"
+        let testDirectory = URL(filePath: "/test/directory")
         let shouldIncludeIntermediateDirectories = false
 
         // When
         XCTAssertThrowsError(
-            try sut.createDirectory(atPath: testDirectory, includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
+            try sut.createDirectory(atURL: testDirectory, includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
         ) {
             // Then
             XCTAssertEqual($0 as? MockFileManagerError, error)
@@ -40,12 +40,12 @@ final class OSFILEDirectoryManagerTests: XCTestCase {
     func test_removeDirectory_butFails_shouldReturnAnError() {
         let error = MockFileManagerError.deleteDirectoryError
         createFileManager(with: error)
-        let testDirectory = "/test/directory"
+        let testDirectory = URL(filePath: "/test/directory")
         let shouldIncludeIntermediateDirectories = true
 
         // When
         XCTAssertThrowsError(
-            try sut.removeDirectory(atPath: testDirectory, includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
+            try sut.removeDirectory(atURL: testDirectory, includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
         ) {
             // Then
             XCTAssertEqual($0 as? MockFileManagerError, error)
@@ -55,11 +55,11 @@ final class OSFILEDirectoryManagerTests: XCTestCase {
     func test_removeDirectory_includingIntermediateDirectories_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager()
-        let testDirectory = "/test/directory"
+        let testDirectory = URL(filePath: "/test/directory")
         let shouldIncludeIntermediateDirectories = true
 
         // When
-        try sut.removeDirectory(atPath: testDirectory, includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
+        try sut.removeDirectory(atURL: testDirectory, includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
 
         // Then
         XCTAssertEqual(fileManager.capturedPath, testDirectory)
@@ -68,11 +68,11 @@ final class OSFILEDirectoryManagerTests: XCTestCase {
     func test_removeDirectory_excludingIntermediateDirectories_directoryDoesntHaveContent_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager()
-        let testDirectory = "/test/directory"
+        let testDirectory = URL(filePath: "/test/directory")
         let shouldIncludeIntermediateDirectories = false
 
         // When
-        try sut.removeDirectory(atPath: testDirectory, includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
+        try sut.removeDirectory(atURL: testDirectory, includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
 
         // Then
         XCTAssertEqual(fileManager.capturedPath, testDirectory)
@@ -80,12 +80,12 @@ final class OSFILEDirectoryManagerTests: XCTestCase {
 
     func test_removeDirectory_excludingIntermediateDirectories_directoryHasContent_shouldReturnAnError() {
         createFileManager(shouldDirectoryHaveContent: true)
-        let testDirectory = "/test/directory"
+        let testDirectory = URL(filePath: "/test/directory")
         let shouldIncludeIntermediateDirectories = false
 
         // When
         XCTAssertThrowsError(
-            try sut.removeDirectory(atPath: testDirectory, includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
+            try sut.removeDirectory(atURL: testDirectory, includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
         ) {
             // Then
             XCTAssertEqual($0 as? OSFILEDirectoryManagerError, .notEmpty)
@@ -96,10 +96,10 @@ final class OSFILEDirectoryManagerTests: XCTestCase {
     func test_listDirectory_withNoContent_shouldReturnEmptyArray() throws {
         // Given
         let fileManager = createFileManager()
-        let testDirectory = "/test/directory"
+        let testDirectory = URL(filePath: "/test/directory")
 
         // When
-        let directoryContent = try sut.listDirectory(atPath: testDirectory)
+        let directoryContent = try sut.listDirectory(atURL: testDirectory)
 
         // Then
         XCTAssertEqual(fileManager.capturedPath, testDirectory)
@@ -110,25 +110,25 @@ final class OSFILEDirectoryManagerTests: XCTestCase {
     func test_listDirectory_withContent_shouldReturnEmptyArray() throws {
         // Given
         let fileManager = createFileManager(shouldDirectoryHaveContent: true)
-        let testDirectory = "/test/directory"
+        let testDirectory = URL(filePath: "/test/directory")
 
         // When
-        let directoryContent = try sut.listDirectory(atPath: testDirectory)
+        let directoryContent = try sut.listDirectory(atURL: testDirectory)
 
         // Then
         XCTAssertEqual(fileManager.capturedPath, testDirectory)
-        XCTAssertEqual(directoryContent.map { $0.relativePath }, [testDirectory])
+        XCTAssertEqual(directoryContent, [testDirectory])
     }
 
     func test_listDirectory_butFails_shouldReturnAnError() {
         // Given
         let error = MockFileManagerError.readDirectoryError
         createFileManager(with: error)
-        let testDirectory = "/test/directory"
+        let testDirectory = URL(filePath: "/test/directory")
 
         // When
         XCTAssertThrowsError(
-            try sut.listDirectory(atPath: testDirectory)
+            try sut.listDirectory(atURL: testDirectory)
         ) {
             // Then
             XCTAssertEqual($0 as? MockFileManagerError, error)

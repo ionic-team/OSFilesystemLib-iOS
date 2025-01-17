@@ -49,7 +49,7 @@ extension OSFILEFileManagerTests {
 
         // Then
         XCTAssertEqual(fileManager.capturedSearchPathDirectory, searchPathDirectory.fileManagerSearchPathDirectory)
-        XCTAssertEqual(fileURL.urlWithAppendingPath(filePath), returnedURL)
+        XCTAssertEqual(fileURL.appending(path: filePath), returnedURL)
     }
 
     func test_getFileURL_fromDirectorySearchPath_containingMultipleFiles_returnsFirstFileSuccessfully() throws {
@@ -65,7 +65,7 @@ extension OSFILEFileManagerTests {
 
         // Then
         XCTAssertEqual(fileManager.capturedSearchPathDirectory, searchPathDirectory.fileManagerSearchPathDirectory)
-        XCTAssertEqual(fileURL.urlWithAppendingPath(filePath), returnedURL)
+        XCTAssertEqual(fileURL.appending(path: filePath), returnedURL)
     }
 
     func test_getFileURL_fromDirectorySearchPath_containingNoFiles_returnsError() {
@@ -126,10 +126,10 @@ extension OSFILEFileManagerTests {
     func test_deleteFile_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager()
-        let filePath = "/test/directory"
+        let filePath = URL(filePath: "/test/directory")
 
         // When
-        try sut.deleteFile(atPath: filePath)
+        try sut.deleteFile(atURL: filePath)
 
         // Then
         XCTAssertEqual(fileManager.capturedPath, filePath)
@@ -138,10 +138,10 @@ extension OSFILEFileManagerTests {
     func test_deleteFile_thatDoesntExist_shouldReturnError() {
         // Given
         createFileManager(fileExists: false)
-        let filePath = "/test/directory"
+        let filePath = URL(filePath: "/test/directory")
 
         // When
-        XCTAssertThrowsError(try sut.deleteFile(atPath: filePath)) {
+        XCTAssertThrowsError(try sut.deleteFile(atURL: filePath)) {
             // Then
             XCTAssertEqual($0 as? OSFILEFileManagerError, .fileNotFound)
         }
@@ -151,10 +151,10 @@ extension OSFILEFileManagerTests {
         // Given
         let error = MockFileManagerError.deleteFileError
         createFileManager(error: error)
-        let filePath = "/test/directory"
+        let filePath = URL(filePath: "/test/directory")
 
         // When
-        XCTAssertThrowsError(try sut.deleteFile(atPath: filePath)) {
+        XCTAssertThrowsError(try sut.deleteFile(atURL: filePath)) {
             // Then
             XCTAssertEqual($0 as? MockFileManagerError, error)
         }
@@ -175,7 +175,7 @@ extension OSFILEFileManagerTests {
 
         // When
         let savedFileURL = try sut.saveFile(
-            atPath: fileURL.path(),
+            atURL: fileURL,
             withEncodingAndData: .string(encoding: stringEncoding, value: contentToSave),
             includeIntermediateDirectories: shouldIncludeIntermediateDirectories
         )
@@ -189,7 +189,7 @@ extension OSFILEFileManagerTests {
         )
         XCTAssertEqual(savedFileContent, contentToSave)
 
-        try sut.deleteFile(atPath: fileURL.absoluteString)  // keep things clean by deleting created file
+        try sut.deleteFile(atURL: fileURL)  // keep things clean by deleting created file
     }
 
     func test_saveFile_withByteBufferEncoding_savesFileSuccessfullyAndReturnsItsURL() throws {
@@ -204,7 +204,7 @@ extension OSFILEFileManagerTests {
 
         // When
         let savedFileURL = try sut.saveFile(
-            atPath: fileURL.path(),
+            atURL: fileURL,
             withEncodingAndData: .byteBuffer(value: contentToSaveData),
             includeIntermediateDirectories: shouldIncludeIntermediateDirectories
         )
@@ -218,7 +218,7 @@ extension OSFILEFileManagerTests {
         )
         XCTAssertEqual(savedFileContent, contentToSave)
 
-        try sut.deleteFile(atPath: fileURL.absoluteString)  // keep things clean by deleting created file
+        try sut.deleteFile(atURL: fileURL)  // keep things clean by deleting created file
     }
 
     func test_saveFile_parentFolderMissing_shouldCreateIt_savesFileSuccessfullyAndReturnsItsURL() throws {
@@ -234,14 +234,14 @@ extension OSFILEFileManagerTests {
 
         // When
         let savedFileURL = try sut.saveFile(
-            atPath: fileURL.path(),
+            atURL: fileURL,
             withEncodingAndData: .string(encoding: stringEncoding, value: contentToSave),
             includeIntermediateDirectories: shouldIncludeIntermediateDirectories
         )
 
         // Then
         XCTAssertEqual(fileManager.capturedIntermediateDirectories, shouldIncludeIntermediateDirectories)
-        XCTAssertEqual(fileManager.capturedPath, parentFolderURL.relativePath)
+        XCTAssertEqual(fileManager.capturedPath, parentFolderURL)
         XCTAssertEqual(savedFileURL, fileURL)
 
         let savedFileContent = try fetchContent(
@@ -250,7 +250,7 @@ extension OSFILEFileManagerTests {
         XCTAssertEqual(savedFileContent, contentToSave)
 
         fileManager.fileExists = true
-        try sut.deleteFile(atPath: fileURL.absoluteString)  // keep things clean by deleting created file
+        try sut.deleteFile(atURL: fileURL)  // keep things clean by deleting created file
     }
 
     func test_saveFile_parentFolderMissing_shouldntCreateIt_returnsError() throws {
@@ -266,7 +266,7 @@ extension OSFILEFileManagerTests {
 
         // When
         XCTAssertThrowsError(try sut.saveFile(
-            atPath: fileURL.path(),
+            atURL: fileURL,
             withEncodingAndData: .string(encoding: stringEncoding, value: contentToSave),
             includeIntermediateDirectories: shouldIncludeIntermediateDirectories)
         ) {
@@ -288,7 +288,7 @@ extension OSFILEFileManagerTests {
         // When
         try sut.appendData(
             .string(encoding: stringEncoding, value: contentToAdd),
-            atPath: fileURL.path(),
+            atURL: fileURL,
             includeIntermediateDirectories: false
         )
 
@@ -300,7 +300,7 @@ extension OSFILEFileManagerTests {
         XCTAssertEqual(savedFileContent, Configuration.fileContent + contentToAdd)
 
         try sut.saveFile(    // keep things clean by resetting file
-            atPath: fileURL.path(),
+            atURL: fileURL,
             withEncodingAndData: .string(encoding: stringEncoding, value: Configuration.fileContent),
             includeIntermediateDirectories: false
         )
@@ -316,7 +316,7 @@ extension OSFILEFileManagerTests {
         // When
         try sut.appendData(
             .byteBuffer(value: contentToAddData),
-            atPath: fileURL.path(),
+            atURL: fileURL,
             includeIntermediateDirectories: false
         )
 
@@ -328,7 +328,7 @@ extension OSFILEFileManagerTests {
         XCTAssertEqual(savedFileContent, Configuration.fileContent + contentToAdd)
 
         try sut.saveFile(    // keep things clean by resetting file
-            atPath: fileURL.path(),
+            atURL: fileURL,
             withEncodingAndData: .string(encoding: .ascii, value: Configuration.fileContent),
             includeIntermediateDirectories: false
         )
@@ -348,11 +348,11 @@ extension OSFILEFileManagerTests {
         // When
         try sut.appendData(
             .string(encoding: stringEncoding, value: contentToAdd),
-            atPath: fileURL.path(),
+            atURL: fileURL,
             includeIntermediateDirectories: shouldIncludeIntermediateDirectories
         )
 
-        XCTAssertEqual(fileManager.capturedPath, parentFolderURL.relativePath)
+        XCTAssertEqual(fileManager.capturedPath, parentFolderURL)
         XCTAssertEqual(fileManager.capturedIntermediateDirectories, shouldIncludeIntermediateDirectories)
 
         // Then
@@ -363,7 +363,7 @@ extension OSFILEFileManagerTests {
         XCTAssertEqual(savedFileContent, contentToAdd)
 
         fileManager.fileExists = true
-        try sut.deleteFile(atPath: fileURL.absoluteString)  // keep things clean by deleting created file
+        try sut.deleteFile(atURL: fileURL)  // keep things clean by deleting created file
     }
 
     func test_appendData_withStringEncoding_textCantBeDecoded_returnsError() throws {
@@ -376,7 +376,7 @@ extension OSFILEFileManagerTests {
         // When
         XCTAssertThrowsError(try sut.appendData(
             .string(encoding: stringEncoding, value: contentToAdd),
-            atPath: fileURL.path(),
+            atURL: fileURL,
             includeIntermediateDirectories: false)
         ) {
             // Then
@@ -397,10 +397,10 @@ extension OSFILEFileManagerTests {
             consideringDate: currentDate, andDifference: (createHourDifference, modificationHourDifference), size: fileSize, isDirectoryType: false
         )
         let fileManager = createFileManager(fileAttributes: fileAttributes)
-        let testDirectory = "/test/directory"
+        let testDirectory = URL(filePath: "/test/directory")
 
         // When
-        let fileAttributesModel = try sut.getItemAttributes(atPath: testDirectory)
+        let fileAttributesModel = try sut.getItemAttributes(atPath: testDirectory.path())
 
         // Then
         XCTAssertEqual(fileManager.capturedPath, testDirectory)
@@ -420,10 +420,10 @@ extension OSFILEFileManagerTests {
             isDirectoryType: false
         )
         let fileManager = createFileManager(fileAttributes: fileAttributes)
-        let testDirectory = "/test/directory"
+        let testDirectory = URL(filePath: "/test/directory")
 
         // When
-        let fileAttributesModel = try sut.getItemAttributes(atPath: testDirectory)
+        let fileAttributesModel = try sut.getItemAttributes(atPath: testDirectory.path())
 
         // Then
         XCTAssertEqual(fileManager.capturedPath, testDirectory)
@@ -443,10 +443,10 @@ extension OSFILEFileManagerTests {
             consideringDate: currentDate, andDifference: (createHourDifference, modificationHourDifference), size: fileSize, isDirectoryType: true
         )
         let fileManager = createFileManager(fileAttributes: fileAttributes)
-        let testDirectory = "/test/directory"
+        let testDirectory = URL(filePath: "/test/directory")
 
         // When
-        let fileAttributesModel = try sut.getItemAttributes(atPath: testDirectory)
+        let fileAttributesModel = try sut.getItemAttributes(atPath: testDirectory.path())
 
         // Then
         XCTAssertEqual(fileManager.capturedPath, testDirectory)
@@ -471,10 +471,10 @@ extension OSFILEFileManagerTests {
             consideringDate: currentDate, andDifference: (createHourDifference, modificationHourDifference), size: fileSize, isDirectoryType: false
         )
         createFileManager(error: error, fileAttributes: fileAttributes)
-        let testDirectory = "/test/directory"
+        let testDirectory = URL(filePath: "/test/directory")
 
         // When
-        XCTAssertThrowsError(try sut.getItemAttributes(atPath: testDirectory)) {
+        XCTAssertThrowsError(try sut.getItemAttributes(atPath: testDirectory.path())) {
             // Then
             XCTAssertEqual($0 as? MockFileManagerError, error)
         }
@@ -486,11 +486,11 @@ extension OSFILEFileManagerTests {
     func test_renameItem_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager(fileExists: false)
-        let originPath = "/test/origin"
-        let destinationPath = "/test/destination"
+        let originPath = URL(filePath: "/test/origin")
+        let destinationPath = URL(filePath: "/test/destination")
 
         // When
-        try sut.renameItem(fromPath: originPath, toPath: destinationPath)
+        try sut.renameItem(fromURL: originPath, toURL: destinationPath)
 
         // Then
         XCTAssertEqual(fileManager.capturedOriginPath, originPath)
@@ -500,11 +500,11 @@ extension OSFILEFileManagerTests {
     func test_renameItem_sameOriginAndDestination_shouldDoNothing() throws {
         // Given
         let fileManager = createFileManager(fileExists: false)
-        let originPath = "/test/origin"
-        let destinationPath = "/test/origin"
+        let originPath = URL(filePath: "/test/origin")
+        let destinationPath = URL(filePath: "/test/origin")
 
         // When
-        try sut.renameItem(fromPath: originPath, toPath: destinationPath)
+        try sut.renameItem(fromURL: originPath, toURL: destinationPath)
 
         // Then
         XCTAssertNil(fileManager.capturedOriginPath)
@@ -514,11 +514,11 @@ extension OSFILEFileManagerTests {
     func test_renameDirectory_alreadyExisting_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager()
-        let originPath = "/test/origin"
-        let destinationPath = "/test/destination"
+        let originPath = URL(filePath: "/test/origin")
+        let destinationPath = URL(filePath: "/test/destination")
 
         // When
-        try sut.renameItem(fromPath: originPath, toPath: destinationPath)
+        try sut.renameItem(fromURL: originPath, toURL: destinationPath)
 
         // Then
         XCTAssertEqual(fileManager.capturedOriginPath, originPath)
@@ -528,16 +528,30 @@ extension OSFILEFileManagerTests {
     func test_renameFile_alreadyExisting_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager(shouldBeDirectory: false)
-        let originPath = "/test/origin"
-        let destinationPath = "/test/destination"
+        let originPath = URL(filePath: "/test/origin")
+        let destinationPath = URL(filePath: "/test/destination")
 
         // When
-        try sut.renameItem(fromPath: originPath, toPath: destinationPath)
+        try sut.renameItem(fromURL: originPath, toURL: destinationPath)
 
         // Then
         XCTAssertEqual(fileManager.capturedPath, destinationPath)
         XCTAssertEqual(fileManager.capturedOriginPath, originPath)
         XCTAssertEqual(fileManager.capturedDestinationPath, destinationPath)
+    }
+
+    func test_renameFile_copyFails_returnsError() throws {
+        // Given
+        let error = MockFileManagerError.moveFileError
+        createFileManager(error: error)
+        let originPath = URL(filePath: "/test/origin")
+        let destinationPath = URL(filePath: "/test/destination")
+
+        // When
+        XCTAssertThrowsError(try sut.renameItem(fromURL: originPath, toURL: destinationPath)) {
+            // Then
+            XCTAssertEqual($0 as? MockFileManagerError, error)
+        }
     }
 }
 
@@ -546,11 +560,11 @@ extension OSFILEFileManagerTests {
     func test_copyItem_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager(fileExists: false)
-        let originPath = "/test/origin"
-        let destinationPath = "/test/destination"
+        let originPath = URL(filePath: "/test/origin")
+        let destinationPath = URL(filePath: "/test/destination")
 
         // When
-        try sut.copyItem(fromPath: originPath, toPath: destinationPath)
+        try sut.copyItem(fromURL: originPath, toURL: destinationPath)
 
         // Then
         XCTAssertEqual(fileManager.capturedOriginPath, originPath)
@@ -560,11 +574,11 @@ extension OSFILEFileManagerTests {
     func test_copyItem_sameOriginAndDestination_shouldDoNothing() throws {
         // Given
         let fileManager = createFileManager(fileExists: false)
-        let originPath = "/test/origin"
-        let destinationPath = "/test/origin"
+        let originPath = URL(filePath: "/test/origin")
+        let destinationPath = URL(filePath: "/test/origin")
 
         // When
-        try sut.copyItem(fromPath: originPath, toPath: destinationPath)
+        try sut.copyItem(fromURL: originPath, toURL: destinationPath)
 
         // Then
         XCTAssertNil(fileManager.capturedOriginPath)
@@ -574,11 +588,11 @@ extension OSFILEFileManagerTests {
     func test_copyDirectory_alreadyExisting_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager()
-        let originPath = "/test/origin"
-        let destinationPath = "/test/destination"
+        let originPath = URL(filePath: "/test/origin")
+        let destinationPath = URL(filePath: "/test/destination")
 
         // When
-        try sut.copyItem(fromPath: originPath, toPath: destinationPath)
+        try sut.copyItem(fromURL: originPath, toURL: destinationPath)
 
         // Then
         XCTAssertEqual(fileManager.capturedOriginPath, originPath)
@@ -588,16 +602,30 @@ extension OSFILEFileManagerTests {
     func test_copyFile_alreadyExisting_shouldBeSuccessful() throws {
         // Given
         let fileManager = createFileManager(shouldBeDirectory: false)
-        let originPath = "/test/origin"
-        let destinationPath = "/test/destination"
+        let originPath = URL(filePath: "/test/origin")
+        let destinationPath = URL(filePath: "/test/destination")
 
         // When
-        try sut.copyItem(fromPath: originPath, toPath: destinationPath)
+        try sut.copyItem(fromURL: originPath, toURL: destinationPath)
 
         // Then
         XCTAssertEqual(fileManager.capturedPath, destinationPath)
         XCTAssertEqual(fileManager.capturedOriginPath, originPath)
         XCTAssertEqual(fileManager.capturedDestinationPath, destinationPath)
+    }
+
+    func test_copyFile_copyFails_returnsError() throws {
+        // Given
+        let error = MockFileManagerError.copyFileError
+        createFileManager(error: error)
+        let originPath = URL(filePath: "/test/origin")
+        let destinationPath = URL(filePath: "/test/destination")
+
+        // When
+        XCTAssertThrowsError(try sut.copyItem(fromURL: originPath, toURL: destinationPath)) {
+            // Then
+            XCTAssertEqual($0 as? MockFileManagerError, error)
+        }
     }
 }
 
@@ -612,7 +640,12 @@ private extension OSFILEFileManagerTests {
         static let fileExtendedContent = " How are you?"
         static let emojiContent = "🙃"
 
-        static func fileAttributes(consideringDate date: Date? = nil, andDifference dateDifference: (creation: Int, modification: Int)? = nil, size: UInt64? = nil, isDirectoryType: Bool) -> [FileAttributeKey: Any] {
+        static func fileAttributes(
+            consideringDate date: Date? = nil,
+            andDifference dateDifference: (creation: Int, modification: Int)? = nil,
+            size: UInt64? = nil,
+            isDirectoryType: Bool
+        ) -> [FileAttributeKey: Any] {
             var result: [FileAttributeKey: Any] = [.type: isDirectoryType ? FileAttributeKey.FileTypeDirectoryValue : Configuration.fileName]
 
             if let date {
@@ -635,7 +668,14 @@ private extension OSFILEFileManagerTests {
         }
     }
 
-    @discardableResult func createFileManager(error: MockFileManagerError? = nil, urlsWithinDirectory: [URL] = [], fileExists: Bool = true, fileAttributes: [FileAttributeKey: Any] = [:], shouldBeDirectory: ObjCBool = true) -> MockFileManager {
+    @discardableResult
+    func createFileManager(
+        error: MockFileManagerError? = nil,
+        urlsWithinDirectory: [URL] = [],
+        fileExists: Bool = true,
+        fileAttributes: [FileAttributeKey: Any] = [:],
+        shouldBeDirectory: ObjCBool = true
+    ) -> MockFileManager {
         let fileManager = MockFileManager(
             error: error,
             urlsWithinDirectory: urlsWithinDirectory,
@@ -650,7 +690,7 @@ private extension OSFILEFileManagerTests {
 
     func fetchContent(forFile file: (name: String, extension: String), withEncoding encoding: OSFILEEncoding) throws -> String {
         let fileURL = try XCTUnwrap(Bundle(for: type(of: self)).url(forResource: file.name, withExtension: file.extension))
-        let fileURLContent = try sut.readFile(atPath: fileURL.path(), withEncoding: encoding)
+        let fileURLContent = try sut.readFile(atURL: fileURL, withEncoding: encoding)
 
         var fileURLUnicodeScalars: String.UnicodeScalarView
         if case .byteBuffer = encoding {

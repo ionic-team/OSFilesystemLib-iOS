@@ -3,21 +3,19 @@ import Foundation
 public struct OSFILEManager {
     private let fileManager: FileManager
 
-    public init(fileManager: FileManager) {
+    public init(fileManager: FileManager = .default) {
         self.fileManager = fileManager
     }
 }
 
 extension OSFILEManager: OSFILEDirectoryManager {
-    public func createDirectory(atPath path: String, includeIntermediateDirectories: Bool) throws {
-        let pathURL = URL.create(with: path)
+    public func createDirectory(atURL pathURL: URL, includeIntermediateDirectories: Bool) throws {
         try fileManager.createDirectory(at: pathURL, withIntermediateDirectories: includeIntermediateDirectories)
     }
 
-    public func removeDirectory(atPath path: String, includeIntermediateDirectories: Bool) throws {
-        let pathURL = URL.create(with: path)
+    public func removeDirectory(atURL pathURL: URL, includeIntermediateDirectories: Bool) throws {
         if !includeIntermediateDirectories {
-            let directoryContents = try listDirectory(atPath: path)
+            let directoryContents = try listDirectory(atURL: pathURL)
             if !directoryContents.isEmpty {
                 throw OSFILEDirectoryManagerError.notEmpty
             }
@@ -26,16 +24,13 @@ extension OSFILEManager: OSFILEDirectoryManager {
         try fileManager.removeItem(at: pathURL)
     }
 
-    public func listDirectory(atPath path: String) throws -> [URL] {
-        let pathURL = URL.create(with: path)
+    public func listDirectory(atURL pathURL: URL) throws -> [URL] {
         return try fileManager.contentsOfDirectory(at: pathURL, includingPropertiesForKeys: nil)
     }
 }
 
 extension OSFILEManager: OSFILEFileManager {
-    public func readFile(atPath path: String, withEncoding encoding: OSFILEEncoding) throws -> String {
-        let fileURL = URL.create(with: path)
-
+    public func readFile(atURL fileURL: URL, withEncoding encoding: OSFILEEncoding) throws -> String {
         // Check if the URL requires security-scoped access
         let requiresSecurityScope = fileURL.startAccessingSecurityScopedResource()
 
@@ -64,21 +59,21 @@ extension OSFILEManager: OSFILEFileManager {
         }
     }
 
-    public func deleteFile(atPath path: String) throws {
-        guard fileManager.fileExists(atPath: path) else {
+    public func deleteFile(atURL url: URL) throws {
+        guard fileManager.fileExists(atPath: url.urlPath) else {
             throw OSFILEFileManagerError.fileNotFound
         }
 
-        try fileManager.removeItem(atPath: path)
+        try fileManager.removeItem(at: url)
     }
 
-    @discardableResult public func saveFile(atPath path: String, withEncodingAndData encodingMapper: OSFILEEncodingValueMapper, includeIntermediateDirectories: Bool) throws -> URL {
-        let fileURL = URL.create(with: path)
+    @discardableResult
+    public func saveFile(atURL fileURL: URL, withEncodingAndData encodingMapper: OSFILEEncodingValueMapper, includeIntermediateDirectories: Bool) throws -> URL {
         let fileDirectoryURL = fileURL.deletingLastPathComponent()
 
         if !fileManager.fileExists(atPath: fileDirectoryURL.urlPath) {
             if includeIntermediateDirectories {
-                try createDirectory(atPath: fileDirectoryURL.urlPath, includeIntermediateDirectories: true)
+                try createDirectory(atURL: fileDirectoryURL, includeIntermediateDirectories: true)
             } else {
                 throw OSFILEFileManagerError.missingParentFolder
             }
@@ -94,9 +89,9 @@ extension OSFILEManager: OSFILEFileManager {
         return fileURL
     }
 
-    public func appendData(_ encodingMapper: OSFILEEncodingValueMapper, atPath path: String, includeIntermediateDirectories: Bool) throws {
-        guard fileManager.fileExists(atPath: path) else {
-            try saveFile(atPath: path, withEncodingAndData: encodingMapper, includeIntermediateDirectories: includeIntermediateDirectories)
+    public func appendData(_ encodingMapper: OSFILEEncodingValueMapper, atURL url: URL, includeIntermediateDirectories: Bool) throws {
+        guard fileManager.fileExists(atPath: url.urlPath) else {
+            try saveFile(atURL: url, withEncodingAndData: encodingMapper, includeIntermediateDirectories: includeIntermediateDirectories)
             return
         }
 
@@ -111,10 +106,10 @@ extension OSFILEManager: OSFILEFileManager {
             dataToAppend = valueData
         }
 
-        let fileHandle = FileHandle(forWritingAtPath: path)
-        try fileHandle?.seekToEnd()
-        try fileHandle?.write(contentsOf: dataToAppend)
-        try fileHandle?.close()
+        let fileHandle = try FileHandle(forWritingTo: url)
+        try fileHandle.seekToEnd()
+        try fileHandle.write(contentsOf: dataToAppend)
+        try fileHandle.close()
     }
 
     public func getItemAttributes(atPath path: String) throws -> OSFILEItemAttributeModel {
@@ -122,15 +117,15 @@ extension OSFILEManager: OSFILEFileManager {
         return .create(from: attributesDictionary)
     }
 
-    public func renameItem(fromPath origin: String, toPath destination: String) throws {
-        try copy(fromPath: origin, toPath: destination) {
-            try fileManager.moveItem(atPath: origin, toPath: destination)
+    public func renameItem(fromURL originURL: URL, toURL destinationURL: URL) throws {
+        try copy(fromURL: originURL, toURL: destinationURL) {
+            try fileManager.moveItem(at: originURL, to: destinationURL)
         }
     }
 
-    public func copyItem(fromPath origin: String, toPath destination: String) throws {
-        try copy(fromPath: origin, toPath: destination) {
-            try fileManager.copyItem(atPath: origin, toPath: destination)
+    public func copyItem(fromURL originURL: URL, toURL destinationURL: URL) throws {
+        try copy(fromURL: originURL, toURL: destinationURL) {
+            try fileManager.copyItem(at: originURL, to: destinationURL)
         }
     }
 }
@@ -159,15 +154,15 @@ private extension OSFILEManager {
         return rawURL
     }
 
-    func copy(fromPath origin: String, toPath destination: String, performOperation: () throws -> Void) throws {
-        guard origin != destination else {
+    func copy(fromURL originURL: URL, toURL destinationURL: URL, performOperation: () throws -> Void) throws {
+        guard originURL != destinationURL else {
             return
         }
 
         var isDirectory: ObjCBool = false
-        if fileManager.fileExists(atPath: destination, isDirectory: &isDirectory) {
+        if fileManager.fileExists(atPath: destinationURL.urlPath, isDirectory: &isDirectory) {
             if !isDirectory.boolValue {
-                try deleteFile(atPath: destination)
+                try deleteFile(atURL: destinationURL)
             }
         }
 

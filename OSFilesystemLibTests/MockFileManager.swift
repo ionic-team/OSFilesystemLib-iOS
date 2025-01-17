@@ -8,9 +8,9 @@ class MockFileManager: FileManager {
     var fileAttributes: [FileAttributeKey: Any]
     var shouldBeDirectory: ObjCBool
 
-    private(set) var capturedPath: String?
-    private(set) var capturedOriginPath: String?
-    private(set) var capturedDestinationPath: String?
+    private(set) var capturedPath: URL?
+    private(set) var capturedOriginPath: URL?
+    private(set) var capturedDestinationPath: URL?
     private(set) var capturedIntermediateDirectories: Bool = false
     private(set) var capturedSearchPathDirectory: FileManager.SearchPathDirectory?
 
@@ -30,11 +30,13 @@ enum MockFileManagerError: Error {
     case deleteDirectoryError
     case deleteFileError
     case itemAttributesError
+    case moveFileError
+    case copyFileError
 }
 
 extension MockFileManager {
     override func createDirectory(at url: URL, withIntermediateDirectories createIntermediates: Bool, attributes: [FileAttributeKey: Any]? = nil) throws {
-        capturedPath = url.relativePath
+        capturedPath = url
         capturedIntermediateDirectories = createIntermediates
 
         if let error, error == .createDirectoryError {
@@ -43,7 +45,7 @@ extension MockFileManager {
     }
 
     override func contentsOfDirectory(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: FileManager.DirectoryEnumerationOptions = []) throws -> [URL] {
-        capturedPath = url.relativePath
+        capturedPath = url
 
         var urls = [URL]()
         if shouldDirectoryHaveContent {
@@ -58,9 +60,9 @@ extension MockFileManager {
     }
 
     override func removeItem(at url: URL) throws {
-        capturedPath = url.relativePath
+        capturedPath = url
 
-        if let error, error == .deleteDirectoryError {
+        if let error, [MockFileManagerError.deleteDirectoryError, .deleteFileError].contains(error) {
             throw error
         }
     }
@@ -81,16 +83,8 @@ extension MockFileManager {
         return fileExists
     }
 
-    override func removeItem(atPath path: String) throws {
-        capturedPath = path
-
-        if let error, error == .deleteFileError {
-            throw error
-        }
-    }
-
     override func attributesOfItem(atPath path: String) throws -> [FileAttributeKey: Any] {
-        capturedPath = path
+        capturedPath = URL(filePath: path)
 
         if let error, error == .itemAttributesError {
             throw error
@@ -99,13 +93,21 @@ extension MockFileManager {
         return fileAttributes
     }
 
-    override func moveItem(atPath srcPath: String, toPath dstPath: String) throws {
-        capturedOriginPath = srcPath
-        capturedDestinationPath = dstPath
+    override func moveItem(at srcURL: URL, to dstURL: URL) throws {
+        capturedOriginPath = srcURL
+        capturedDestinationPath = dstURL
+
+        if let error, error == .moveFileError {
+            throw error
+        }
     }
 
-    override func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
-        capturedOriginPath = srcPath
-        capturedDestinationPath = dstPath
+    override func copyItem(at srcURL: URL, to dstURL: URL) throws {
+        capturedOriginPath = srcURL
+        capturedDestinationPath = dstURL
+
+        if let error, error == .copyFileError {
+            throw error
+        }
     }
 }
