@@ -42,13 +42,13 @@ extension OSFILEFileManagerTests {
         let fileURL: URL = try XCTUnwrap(.init(string: "/file/directory"))
         let fileManager = createFileManager(urlsWithinDirectory: [fileURL])
         let filePath = "/test/directory"
-        let searchPathDirectory = OSFILESearchPathDirectory.cache
+        let directoryType = OSFILEDirectoryType.cache
 
         // When
-        let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .directory(searchPath: searchPathDirectory))
+        let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .directory(type: directoryType))
 
         // Then
-        XCTAssertEqual(fileManager.capturedSearchPathDirectory, searchPathDirectory.fileManagerSearchPathDirectory)
+        XCTAssertEqual(fileManager.capturedSearchPathDirectory, .cachesDirectory)
         XCTAssertEqual(fileURL.appending(path: filePath), returnedURL)
     }
 
@@ -58,24 +58,85 @@ extension OSFILEFileManagerTests {
         let ignoredFileURL: URL = try XCTUnwrap(.init(string: "another_file/directory"))
         let fileManager = createFileManager(urlsWithinDirectory: [fileURL, ignoredFileURL])
         let filePath = "/test/directory"
-        let searchPathDirectory = OSFILESearchPathDirectory.cache
+        let directoryType = OSFILEDirectoryType.cache
 
         // When
-        let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .directory(searchPath: searchPathDirectory))
+        let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .directory(type: directoryType))
 
         // Then
-        XCTAssertEqual(fileManager.capturedSearchPathDirectory, searchPathDirectory.fileManagerSearchPathDirectory)
+        XCTAssertEqual(fileManager.capturedSearchPathDirectory, .cachesDirectory)
         XCTAssertEqual(fileURL.appending(path: filePath), returnedURL)
+    }
+
+    func test_getFileURL_fromDocumentDirectorySearchPath_returnsFileSuccessfully() throws {
+        // Given
+        let fileURL: URL = try XCTUnwrap(.init(string: "/file/directory"))
+        let fileManager = createFileManager(urlsWithinDirectory: [fileURL])
+        let filePath = "/test/directory"
+        let directoryType = OSFILEDirectoryType.document
+
+        // When
+        let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .directory(type: directoryType))
+
+        // Then
+        XCTAssertEqual(fileManager.capturedSearchPathDirectory, .documentDirectory)
+        XCTAssertEqual(fileURL.appending(path: filePath), returnedURL)
+    }
+
+    func test_getFileURL_fromLibraryDirectorySearchPath_returnsFileSuccessfully() throws {
+        // Given
+        let fileURL: URL = try XCTUnwrap(.init(string: "/file/directory"))
+        let fileManager = createFileManager(urlsWithinDirectory: [fileURL])
+        let filePath = "/test/directory"
+        let directoryType = OSFILEDirectoryType.library
+
+        // When
+        let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .directory(type: directoryType))
+
+        // Then
+        XCTAssertEqual(fileManager.capturedSearchPathDirectory, .libraryDirectory)
+        XCTAssertEqual(fileURL.appending(path: filePath), returnedURL)
+    }
+
+    func test_getFileURL_fromNotSyncedLibraryDirectorySearchPath_returnsFileSuccessfully() throws {
+        // Given
+        let fileURL: URL = try XCTUnwrap(.init(string: "/file/directory"))
+        let fileManager = createFileManager(urlsWithinDirectory: [fileURL])
+        let filePath = "/test/directory"
+        let directoryType = OSFILEDirectoryType.notSyncedLibrary
+
+        // When
+        let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .directory(type: directoryType))
+
+        // Then
+        XCTAssertEqual(fileManager.capturedSearchPathDirectory, .libraryDirectory)
+        XCTAssertEqual(fileURL.appending(path: "NoCloud").appending(path: filePath), returnedURL)
+    }
+
+    func test_getFileURL_fromTemporaryDirectorySearchPath_returnsFileSuccessfully() throws {
+        // Given
+        let parentFolderURL: URL = try XCTUnwrap(.init(string: "/file"))
+        let fileURL: URL = parentFolderURL.appending(path: "/directory")
+        let fileManager = createFileManager(urlsWithinDirectory: [fileURL], mockTemporaryDirectory: parentFolderURL)
+        let filePath = "/test/directory"
+        let directoryType = OSFILEDirectoryType.temporary
+
+        // When
+        let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .directory(type: directoryType))
+
+        // Then
+        XCTAssertEqual(fileManager.temporaryDirectory, parentFolderURL)
+        XCTAssertEqual(parentFolderURL.appending(path: filePath), returnedURL)
     }
 
     func test_getFileURL_fromDirectorySearchPath_containingNoFiles_returnsError() {
         // Given
         createFileManager()
         let filePath = "/test/directory"
-        let searchPathDirectory = OSFILESearchPathDirectory.cache
+        let directoryType = OSFILEDirectoryType.cache
 
         // When
-        XCTAssertThrowsError(try sut.getFileURL(atPath: filePath, withSearchPath: .directory(searchPath: searchPathDirectory))) {
+        XCTAssertThrowsError(try sut.getFileURL(atPath: filePath, withSearchPath: .directory(type: directoryType))) {
             // Then
             XCTAssertEqual($0 as? OSFILEFileManagerError, .directoryNotFound)
         }
@@ -86,13 +147,13 @@ extension OSFILEFileManagerTests {
         let fileURL: URL = try XCTUnwrap(.init(string: "/file/directory"))
         let fileManager = createFileManager(urlsWithinDirectory: [fileURL])
         let emptyFilePath = ""
-        let searchPathDirectory = OSFILESearchPathDirectory.cache
+        let directoryType = OSFILEDirectoryType.cache
 
         // When
-        let returnedURL = try sut.getFileURL(atPath: emptyFilePath, withSearchPath: .directory(searchPath: searchPathDirectory))
+        let returnedURL = try sut.getFileURL(atPath: emptyFilePath, withSearchPath: .directory(type: directoryType))
 
         // Then
-        XCTAssertEqual(fileManager.capturedSearchPathDirectory, searchPathDirectory.fileManagerSearchPathDirectory)
+        XCTAssertEqual(fileManager.capturedSearchPathDirectory, .cachesDirectory)
         XCTAssertEqual(fileURL, returnedURL)
     }
 
@@ -674,14 +735,16 @@ private extension OSFILEFileManagerTests {
         urlsWithinDirectory: [URL] = [],
         fileExists: Bool = true,
         fileAttributes: [FileAttributeKey: Any] = [:],
-        shouldBeDirectory: ObjCBool = true
+        shouldBeDirectory: ObjCBool = true,
+        mockTemporaryDirectory: URL? = nil
     ) -> MockFileManager {
         let fileManager = MockFileManager(
             error: error,
             urlsWithinDirectory: urlsWithinDirectory,
             fileExists: fileExists,
             fileAttributes: fileAttributes,
-            shouldBeDirectory: shouldBeDirectory
+            shouldBeDirectory: shouldBeDirectory,
+            mockTemporaryDirectory: mockTemporaryDirectory
         )
         sut = OSFILEManager(fileManager: fileManager)
 

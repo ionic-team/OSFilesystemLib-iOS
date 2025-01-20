@@ -51,9 +51,9 @@ extension OSFILEManager: OSFILEFileManager {
     }
 
     public func getFileURL(atPath path: String, withSearchPath searchPath: OSFILESearchPath) throws -> URL {
-        return switch searchPath {
-        case .directory(let directorySearchPath):
-            try resolveDirectoryURL(for: directorySearchPath.fileManagerSearchPathDirectory, with: path)
+        switch searchPath {
+        case .directory(let type):
+            try resolveDirectoryURL(forType: type, with: path)
         case .raw:
             try resolveRawURL(from: path)
         }
@@ -139,8 +139,8 @@ private extension OSFILEManager {
         try String(contentsOf: fileURL, encoding: stringEncoding)
     }
 
-    func resolveDirectoryURL(for searchPath: FileManager.SearchPathDirectory, with path: String) throws -> URL {
-        guard let directoryURL = fileManager.urls(for: searchPath, in: .userDomainMask).first else {
+    func resolveDirectoryURL(forType directoryType: OSFILEDirectoryType, with path: String) throws -> URL {
+        guard let directoryURL = directoryType.fetchURL(using: fileManager) else {
             throw OSFILEFileManagerError.directoryNotFound
         }
 
@@ -167,5 +167,39 @@ private extension OSFILEManager {
         }
 
         try performOperation()
+    }
+}
+
+private extension OSFILEDirectoryType {
+    struct Keys {
+        static let noCloudPath = "NoCloud"
+    }
+
+    func fetchURL(using fileManager: FileManager) -> URL? {
+        switch self {
+        case .cache:
+            fetchURL(using: fileManager, forSearchPath: .cachesDirectory)
+        case .document:
+            fetchURL(using: fileManager, forSearchPath: .documentDirectory)
+        case .library:
+            fetchURL(using: fileManager, forSearchPath: .libraryDirectory)
+        case .notSyncedLibrary:
+            fetchNotSyncedLibrary(using: fileManager)
+        case .temporary:
+            fileManager.temporaryDirectory
+        }
+    }
+
+    private func fetchURL(using fileManager: FileManager, forSearchPath searchPath: FileManager.SearchPathDirectory) -> URL? {
+        fileManager.urls(for: searchPath, in: .userDomainMask).first
+    }
+
+    private func fetchNotSyncedLibrary(using fileManager: FileManager) -> URL? {
+        var url = fileManager.urls(for: .libraryDirectory, in: .userDomainMask).first?.urlWithAppendingPath(Keys.noCloudPath)
+        var resourceValues = URLResourceValues()
+        resourceValues.isExcludedFromBackup = true
+        try? url?.setResourceValues(resourceValues)
+
+        return url
     }
 }

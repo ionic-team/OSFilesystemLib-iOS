@@ -25,20 +25,14 @@ public enum OSFILEStringEncoding {
 }
 
 public enum OSFILESearchPath {
-    case directory(searchPath: OSFILESearchPathDirectory)
+    case directory(type: OSFILEDirectoryType)
     case raw
 }
 
-public enum OSFILESearchPathDirectory {
+public enum OSFILEDirectoryType {
     case cache
     case document
     case library
-
-    var fileManagerSearchPathDirectory: FileManager.SearchPathDirectory {
-        switch self {
-        case .cache: .cachesDirectory
-        case .document: .documentDirectory
-        case .library: .libraryDirectory
-        }
-    }
+    case notSyncedLibrary
+    case temporary
 }

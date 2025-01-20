@@ -7,6 +7,7 @@ class MockFileManager: FileManager {
     var fileExists: Bool
     var fileAttributes: [FileAttributeKey: Any]
     var shouldBeDirectory: ObjCBool
+    var mockTemporaryDirectory: URL?
 
     private(set) var capturedPath: URL?
     private(set) var capturedOriginPath: URL?
@@ -14,13 +15,14 @@ class MockFileManager: FileManager {
     private(set) var capturedIntermediateDirectories: Bool = false
     private(set) var capturedSearchPathDirectory: FileManager.SearchPathDirectory?
 
-    init(error: MockFileManagerError? = nil, shouldDirectoryHaveContent: Bool = false, urlsWithinDirectory: [URL] = [], fileExists: Bool = true, fileAttributes: [FileAttributeKey: Any] = [:], shouldBeDirectory: ObjCBool = true) {
+    init(error: MockFileManagerError? = nil, shouldDirectoryHaveContent: Bool = false, urlsWithinDirectory: [URL] = [], fileExists: Bool = true, fileAttributes: [FileAttributeKey: Any] = [:], shouldBeDirectory: ObjCBool = true, mockTemporaryDirectory: URL? = nil) {
         self.error = error
         self.shouldDirectoryHaveContent = shouldDirectoryHaveContent
         self.urlsWithinDirectory = urlsWithinDirectory
         self.fileExists = fileExists
         self.fileAttributes = fileAttributes
         self.shouldBeDirectory = shouldBeDirectory
+        self.mockTemporaryDirectory = mockTemporaryDirectory
     }
 }
 
@@ -109,5 +111,9 @@ extension MockFileManager {
         if let error, error == .copyFileError {
             throw error
         }
+    }
+
+    override var temporaryDirectory: URL {
+        mockTemporaryDirectory ?? .init(filePath: "")
     }
 }
