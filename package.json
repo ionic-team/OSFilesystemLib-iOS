@@ -1,6 +1,6 @@
 {
   "name": "IONFilesystemLib",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Library for accessing iOS filesystem.",
   "author": "OutSystems Mobile Ecosystem",
   "email": "rd.mobileecosystem.team@outsystems.com",

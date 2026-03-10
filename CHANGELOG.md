@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/ionic-team/ion-ios-filesystem/compare/1.1.1...1.1.2) (2026-03-10)
+
+
+### Bug Fixes
+
+* use Xcode to 16.4 instead of 26 ([#15](https://github.com/ionic-team/ion-ios-filesystem/issues/15)) ([c6f5049](https://github.com/ionic-team/ion-ios-filesystem/commit/c6f5049f8fff919282675c61786f9eb2e34690d1))
+
 ## [1.1.1](https://github.com/ionic-team/ion-ios-filesystem/compare/1.1.0...1.1.1) (2026-02-13)
 
 
