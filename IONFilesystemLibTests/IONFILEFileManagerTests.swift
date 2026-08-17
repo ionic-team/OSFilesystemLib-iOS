@@ -351,8 +351,9 @@ extension IONFILEFileManagerTests {
 
         // Then
         XCTAssertEqual(filePath + "/", returnedURL.path())
+        XCTAssertTrue(returnedURL.isFileURL)
     }
-    
+
     func test_getFileURL_doesNotExist_returnsFileSuccessfully() throws {
         // Given
         createFileManager(fileExists: false)
@@ -363,6 +364,40 @@ extension IONFILEFileManagerTests {
 
         // Then
         XCTAssertEqual(filePath + "/", returnedURL.path())
+        XCTAssertTrue(returnedURL.isFileURL)
+    }
+
+    func test_getFileURL_rawFile_fromBarePath_isResolvedAsFileURL() throws {
+        // Given
+        createFileManager(shouldBeDirectory: false)
+        let filePath = "/test/directory/random_doc.pdf"
+
+        // When
+        let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .raw)
+
+        // Then
+        XCTAssertTrue(returnedURL.isFileURL)
+        XCTAssertEqual(returnedURL.scheme, "file")
+        XCTAssertEqual(returnedURL.absoluteString, "file://" + filePath)
+    }
+
+    func test_getFileURL_rawFile_fromBarePath_canActuallyBeRead() throws {
+        // Given: a bare path (no "file://" scheme), as returned by e.g. the contacts plugin
+        // when writing a contact photo to the temporary directory on iOS.
+        createFileManager(shouldBeDirectory: false)
+        let configurationFileURL = try XCTUnwrap(fetchConfigurationFile())
+        let barePath = configurationFileURL.path
+
+        // When
+        let resolvedURL = try sut.getFileURL(atPath: barePath, withSearchPath: .raw)
+        let result = try sut.readEntireFile(atURL: resolvedURL, withEncoding: .string(encoding: .utf8))
+
+        // Then
+        guard case .string(_, let content) = result else {
+            XCTFail("Wrong result type")
+            return
+        }
+        XCTAssertEqual(content, Configuration.fileContent)
     }
 
     func test_getFileURL_rawFile_fromInvalidPath_returnsError() {
@@ -410,7 +445,7 @@ extension IONFILEFileManagerTests {
         let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .raw)
 
         // Then
-        XCTAssertEqual(filePath, returnedURL.absoluteString)
+        XCTAssertEqual("file://" + filePath, returnedURL.absoluteString)
     }
 }
 

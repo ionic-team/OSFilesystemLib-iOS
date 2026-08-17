@@ -257,8 +257,18 @@ private extension IONFILEManager {
     }
 
     func resolveRawURL(from path: String) throws -> URL {
-        guard let rawURL = URL(string: path) else {
+        guard !path.isEmpty else {
             throw IONFILEFileManagerError.cantCreateURL(forPath: path)
+        }
+
+        // A scheme-less string (e.g. a bare "/var/.../file.txt" path) parses successfully via
+        // `URL(string:)` but isn't a file URL, so reads against it fail. Only trust the parsed
+        // URL when it carries a scheme (e.g. "file://..."); otherwise treat it as a literal path.
+        let rawURL: URL
+        if let parsedURL = URL(string: path), parsedURL.scheme != nil {
+            rawURL = parsedURL
+        } else {
+            rawURL = URL(fileURLWithPath: path)
         }
         return fixPathComponentsIfNeeded(rawURL)
     }
