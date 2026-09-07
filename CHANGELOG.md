@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/ionic-team/ion-ios-filesystem/compare/1.1.2...1.1.3) (2026-09-07)
+
+
+### Bug Fixes
+
+* raw file paths without a scheme couldn't be accessed ([#16](https://github.com/ionic-team/ion-ios-filesystem/issues/16)) ([8456bf2](https://github.com/ionic-team/ion-ios-filesystem/commit/8456bf2c5c3b4d448dfa450fbfcb06ea914ab2a8))
+
 ## [1.1.2](https://github.com/ionic-team/ion-ios-filesystem/compare/1.1.1...1.1.2) (2026-03-10)
 
 
