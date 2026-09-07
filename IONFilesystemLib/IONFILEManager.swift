@@ -253,7 +253,28 @@ private extension IONFILEManager {
         guard let directoryURL = directoryType.fetchURL(using: fileManager) else {
             throw IONFILEFileManagerError.directoryNotFound(atPath: path)
         }
-        return fixPathComponentsIfNeeded(path.isEmpty ? directoryURL : directoryURL.urlWithAppendingPath(path))
+        let joinedURL = fixPathComponentsIfNeeded(path.isEmpty ? directoryURL : directoryURL.urlWithAppendingPath(path))
+        try assertContained(joinedURL, within: directoryURL)
+        return joinedURL
+    }
+
+    /// Verifies that `url`'s canonical (symlink-resolved, "."/".."-resolved) path is the
+    /// same as, or a descendant of, `directory`'s canonical path. Resolving symlinks also
+    /// normalizes platform aliases like /var vs /private/var to the same real path.
+    private func assertContained(_ url: URL, within directory: URL) throws {
+        let canonicalURL = url.resolvingSymlinksInPath()
+        let canonicalDirectory = directory.resolvingSymlinksInPath()
+        let directoryPathWithSeparator = canonicalDirectory.urlPath.hasSuffix("/")
+            ? canonicalDirectory.urlPath
+            : canonicalDirectory.urlPath + "/"
+        let isContained = canonicalURL.urlPath == canonicalDirectory.urlPath ||
+            canonicalURL.urlPath.hasPrefix(directoryPathWithSeparator)
+        if !isContained {
+            throw IONFILEFileManagerError.pathEscapesDirectory(
+                path: canonicalURL.urlPath,
+                directory: canonicalDirectory.urlPath
+            )
+        }
     }
 
     func resolveRawURL(from path: String) throws -> URL {
