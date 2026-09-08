@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/ionic-team/ion-ios-filesystem/compare/1.1.3...1.1.4) (2026-09-08)
+
+
+### Bug Fixes
+
+* contain Directory-scoped paths to their target directory ([#17](https://github.com/ionic-team/ion-ios-filesystem/issues/17)) ([40a2f20](https://github.com/ionic-team/ion-ios-filesystem/commit/40a2f20cd9c344f90f1309cd2ee76d6dd3b86284))
+
 ## [1.1.3](https://github.com/ionic-team/ion-ios-filesystem/compare/1.1.2...1.1.3) (2026-09-07)
 
 

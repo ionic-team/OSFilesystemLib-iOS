@@ -15,7 +15,7 @@ A Swift library for iOS that provides access to the native file system. With thi
 `ion-ios-filesystem` is available through [CocoaPods](https://cocoapods.org). Add this to your Podfile:
 
 ```ruby
-pod 'IONFilesystemLib', '~> 1.1.3'
+pod 'IONFilesystemLib', '~> 1.1.4'
 ```
 
 ## Quick Start
