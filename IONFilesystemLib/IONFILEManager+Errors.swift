@@ -21,6 +21,7 @@ public enum IONFILEFileManagerError: IONFILEError {
     case directoryNotFound(atPath: String)
     case fileNotFound(atPath: String)
     case missingParentFolder
+    case pathEscapesDirectory(path: String, directory: String)
 
     public var errorDescription: String? {
         switch self {
@@ -29,6 +30,7 @@ public enum IONFILEFileManagerError: IONFILEError {
         case .directoryNotFound(let path): "Can't find directory at path '\(path)'."
         case .fileNotFound(let path): "Can't find file at path '\(path)'."
         case .missingParentFolder: "Parent folder doesn't exist."
+        case .pathEscapesDirectory(let path, let directory): "Resolved path '\(path)' is outside of directory '\(directory)'."
         }
     }
 }

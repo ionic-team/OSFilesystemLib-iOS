@@ -449,6 +449,124 @@ extension IONFILEFileManagerTests {
     }
 }
 
+// MARK: - 'getFileURL' directory containment tests (IONIC-102)
+extension IONFILEFileManagerTests {
+    func test_getFileURL_fromDirectorySearchPath_withTraversalEscapingDirectory_throwsPathEscapesDirectory() throws {
+        // Given: a real file URL is required here (unlike other getFileURL tests) since
+        // resolvingSymlinksInPath(), which the containment check relies on, is a no-op on
+        // schemeless URL(string:) references and only resolves real file:// URLs.
+        let fileURL = URL(fileURLWithPath: "/file/directory")
+        createFileManager(urlsWithinDirectory: [fileURL])
+        let filePath = "../../etc/passwd"
+        let directoryType = IONFILEDirectoryType.cache
+
+        // When and Then
+        XCTAssertThrowsError(try sut.getFileURL(atPath: filePath, withSearchPath: .directory(type: directoryType))) {
+            guard case .pathEscapesDirectory = $0 as? IONFILEFileManagerError else {
+                XCTFail("Expected pathEscapesDirectory error, got \($0)")
+                return
+            }
+        }
+    }
+
+    func test_getFileURL_fromDirectorySearchPath_withNestedTraversalEscapingDirectory_throwsPathEscapesDirectory() throws {
+        // Given: see note above on why a real file URL is needed for this test
+        let fileURL = URL(fileURLWithPath: "/file/directory")
+        createFileManager(urlsWithinDirectory: [fileURL])
+        let filePath = "subdir/../../../escaped.txt"
+        let directoryType = IONFILEDirectoryType.document
+
+        // When and Then
+        XCTAssertThrowsError(try sut.getFileURL(atPath: filePath, withSearchPath: .directory(type: directoryType))) {
+            guard case .pathEscapesDirectory = $0 as? IONFILEFileManagerError else {
+                XCTFail("Expected pathEscapesDirectory error, got \($0)")
+                return
+            }
+        }
+    }
+
+    func test_getFileURL_fromDirectorySearchPath_withTraversalStayingWithinDirectory_returnsFileSuccessfully() throws {
+        // Given
+        let fileURL = URL(fileURLWithPath: "/file/directory")
+        let fileManager = createFileManager(urlsWithinDirectory: [fileURL])
+        let filePath = "a/../test/directory"
+        let directoryType = IONFILEDirectoryType.cache
+
+        // When
+        let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .directory(type: directoryType))
+
+        // Then
+        XCTAssertEqual(fileManager.capturedSearchPathDirectory, .cachesDirectory)
+        XCTAssertEqual(fileURL.appendingPathComponent(filePath, isDirectory: true), returnedURL)
+    }
+
+    func test_getFileURL_fromDirectorySearchPath_withSymlinkEscapingDirectory_throwsPathEscapesDirectory() throws {
+        // Given: a symlink planted inside the allowed directory that points outside it,
+        // referenced with no ".." anywhere in the path string
+        let realFileManager = FileManager.default
+        let baseDir = realFileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let allowedDir = baseDir.appendingPathComponent("allowed")
+        try realFileManager.createDirectory(at: allowedDir, withIntermediateDirectories: true)
+        let outsideDir = baseDir.appendingPathComponent("outside")
+        try realFileManager.createDirectory(at: outsideDir, withIntermediateDirectories: true)
+        let secretFile = outsideDir.appendingPathComponent("secret.txt")
+        try "secret".write(to: secretFile, atomically: true, encoding: .utf8)
+        let symlink = allowedDir.appendingPathComponent("escape-link")
+        try realFileManager.createSymbolicLink(at: symlink, withDestinationURL: outsideDir)
+        defer { try? realFileManager.removeItem(at: baseDir) }
+
+        createFileManager(urlsWithinDirectory: [allowedDir])
+        let filePath = "escape-link/secret.txt"
+        let directoryType = IONFILEDirectoryType.cache
+
+        // When and Then
+        XCTAssertThrowsError(try sut.getFileURL(atPath: filePath, withSearchPath: .directory(type: directoryType))) {
+            guard case .pathEscapesDirectory = $0 as? IONFILEFileManagerError else {
+                XCTFail("Expected pathEscapesDirectory error, got \($0)")
+                return
+            }
+        }
+    }
+
+    func test_resolvingSymlinksInPath_privateVarAndVarAliases_canonicalizeToTheSameRealPath() {
+        // Given: the two path forms iOS uses interchangeably for the same real location
+        let varFormURL = URL(fileURLWithPath: "/var/tmp")
+        let privateVarFormURL = URL(fileURLWithPath: "/private/var/tmp")
+
+        // When
+        let resolvedVarForm = varFormURL.resolvingSymlinksInPath()
+        let resolvedPrivateVarForm = privateVarFormURL.resolvingSymlinksInPath()
+
+        // Then
+        XCTAssertEqual(resolvedVarForm.path, resolvedPrivateVarForm.path)
+    }
+
+    func test_getFileURL_fromDirectorySearchPath_resolvedViaPrivateVarAlias_containsExistingFileReachedViaVarAlias() throws {
+        // Given: the directory is only known to the app via its "/private/var" form, and an
+        // existing nested file within it is reached through that same resolved URL.
+        // Note: resolvingSymlinksInPath() only fully normalizes an alias like /var vs.
+        // /private/var when the *entire* path it's given already exists on disk (confirmed via
+        // manual verification) - so this test (deliberately) exercises that with an existing
+        // file, rather than a not-yet-created one, to isolate the alias behavior on its own.
+        let uniqueName = "ionfile-test-\(UUID().uuidString)"
+        let privateVarFormDirectory = URL(fileURLWithPath: "/private/var/tmp/\(uniqueName)/allowed")
+        try FileManager.default.createDirectory(at: privateVarFormDirectory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: URL(fileURLWithPath: "/private/var/tmp/\(uniqueName)")) }
+        let nestedFile = privateVarFormDirectory.appendingPathComponent("file.txt")
+        try "contents".write(to: nestedFile, atomically: true, encoding: .utf8)
+
+        createFileManager(urlsWithinDirectory: [privateVarFormDirectory])
+        let filePath = "file.txt"
+        let directoryType = IONFILEDirectoryType.cache
+
+        // When: resolution should succeed since both alias forms canonicalize identically
+        let returnedURL = try sut.getFileURL(atPath: filePath, withSearchPath: .directory(type: directoryType))
+
+        // Then
+        XCTAssertEqual(privateVarFormDirectory.appendingPathComponent(filePath, isDirectory: true), returnedURL)
+    }
+}
+
 // MARK: - 'deleteFile' tests
 extension IONFILEFileManagerTests {
     func test_deleteFile_shouldBeSuccessful() throws {
